@@ -91,6 +91,20 @@
         .header .status.online { color: #4ade80; }
         .user-info { font-size: 0.8em; color: #888; margin-top: 5px; }
         
+        .pause-indicator {
+            display: none;
+            background: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            margin-top: 8px;
+        }
+        
+        .pause-indicator.show {
+            display: inline-block;
+        }
+        
         .logout-btn {
             position: absolute;
             top: 15px; right: 15px;
@@ -593,6 +607,7 @@
             <h1>🖨️ Makine Kontrol Paneli</h1>
             <div class="status" id="connectionStatus">Bağlanıyor...</div>
             <div class="user-info" id="userInfo"></div>
+            <div class="pause-indicator" id="pauseIndicator">⏸️ Güncelleme duraklatıldı - Ayarlar açık</div>
         </div>
         
         <div id="content">
@@ -635,8 +650,13 @@
         let machines = {};
         let currentUser = null;
         let machineToDelete = null;
-        let openSettings = {};  // Hangi ayarlar açık
-        let openMachineSettings = {};  // Hangi makine ayarları açık
+        
+        // ✅ Açık olan panelleri takip et
+        let openSettings = {};        // Otomatik temizlik ayarları açık mı
+        let openMachineSettings = {}; // Makine ayarları açık mı
+        
+        // ✅ Güncelleme durduruluyor mu?
+        let updatePaused = false;
         
         // ================================
         // AUTH
@@ -750,6 +770,32 @@
         }
         
         // ================================
+        // PAUSE/RESUME UPDATE
+        // ================================
+        
+        function checkPauseState() {
+            // Herhangi bir ayar paneli açık mı kontrol et
+            const hasOpenSettings = Object.values(openSettings).some(v => v === true);
+            const hasOpenMachineSettings = Object.values(openMachineSettings).some(v => v === true);
+            
+            updatePaused = hasOpenSettings || hasOpenMachineSettings;
+            
+            // Göstergeyi güncelle
+            const indicator = document.getElementById('pauseIndicator');
+            if (updatePaused) {
+                indicator.classList.add('show');
+            } else {
+                indicator.classList.remove('show');
+            }
+        }
+        
+        function resumeUpdates() {
+            updatePaused = false;
+            document.getElementById('pauseIndicator').classList.remove('show');
+            updateUI(); // Hemen güncelle
+        }
+        
+        // ================================
         // COMMANDS
         // ================================
         
@@ -782,14 +828,18 @@
             const toggle = document.getElementById(`settings-toggle-${machineId}`);
             
             if (openSettings[machineId]) {
+                // Kapatılıyor
                 content.classList.remove('open');
                 toggle.classList.remove('open');
                 openSettings[machineId] = false;
             } else {
+                // Açılıyor
                 content.classList.add('open');
                 toggle.classList.add('open');
                 openSettings[machineId] = true;
             }
+            
+            checkPauseState();
         }
         
         function toggleMachineSettings(machineId, event) {
@@ -799,14 +849,18 @@
             const toggle = document.getElementById(`machine-settings-toggle-${machineId}`);
             
             if (openMachineSettings[machineId]) {
+                // Kapatılıyor
                 content.classList.remove('open');
                 toggle.classList.remove('open');
                 openMachineSettings[machineId] = false;
             } else {
+                // Açılıyor
                 content.classList.add('open');
                 toggle.classList.add('open');
                 openMachineSettings[machineId] = true;
             }
+            
+            checkPauseState();
         }
         
         function toggleSetting(machineId, setting, event) {
@@ -834,6 +888,16 @@
             database.ref(`machines/${machineId}/settings`).set(settings)
                 .then(() => {
                     showToast('✅ Ayarlar kaydedildi!', 'success');
+                    
+                    // Paneli kapat ve güncellemeyi devam ettir
+                    const content = document.getElementById(`settings-content-${machineId}`);
+                    const toggle = document.getElementById(`settings-toggle-${machineId}`);
+                    content.classList.remove('open');
+                    toggle.classList.remove('open');
+                    openSettings[machineId] = false;
+                    
+                    checkPauseState();
+                    resumeUpdates();
                 })
                 .catch((error) => {
                     showToast(`❌ Hata: ${error.message}`, 'error');
@@ -847,7 +911,9 @@
         function saveMachineName(machineId, event) {
             event.stopPropagation();
             
-            const newName = document.getElementById(`machine-name-${machineId}`).value.trim();
+            const input = document.getElementById(`machine-name-${machineId}`);
+            const newName = input.value.trim();
+            
             if (!newName) {
                 showToast('❌ İsim boş olamaz!', 'error');
                 return;
@@ -857,6 +923,16 @@
                 display_name: newName
             }).then(() => {
                 showToast('✅ Makine ismi güncellendi!', 'success');
+                
+                // Paneli kapat ve güncellemeyi devam ettir
+                const content = document.getElementById(`machine-settings-content-${machineId}`);
+                const toggle = document.getElementById(`machine-settings-toggle-${machineId}`);
+                content.classList.remove('open');
+                toggle.classList.remove('open');
+                openMachineSettings[machineId] = false;
+                
+                checkPauseState();
+                resumeUpdates();
             }).catch((error) => {
                 showToast(`❌ Hata: ${error.message}`, 'error');
             });
@@ -865,7 +941,8 @@
         function openDeleteModal(machineId, event) {
             event.stopPropagation();
             machineToDelete = machineId;
-            document.getElementById('deleteModalText').textContent = `"${machineId}" makinesini silmek istediğinize emin misiniz? Bu işlem geri alınamaz!`;
+            const displayName = machines[machineId]?.display_name || machineId;
+            document.getElementById('deleteModalText').textContent = `"${displayName}" makinesini silmek istediğinize emin misiniz? Bu işlem geri alınamaz!`;
             document.getElementById('deleteModal').classList.add('show');
         }
         
@@ -877,10 +954,19 @@
         function confirmDelete() {
             if (!machineToDelete) return;
             
-            database.ref(`machines/${machineToDelete}`).remove()
+            const idToDelete = machineToDelete;
+            
+            database.ref(`machines/${idToDelete}`).remove()
                 .then(() => {
                     showToast('✅ Makine silindi!', 'success');
                     closeDeleteModal();
+                    
+                    // Bu makine için açık panelleri temizle
+                    delete openSettings[idToDelete];
+                    delete openMachineSettings[idToDelete];
+                    
+                    checkPauseState();
+                    resumeUpdates();
                 })
                 .catch((error) => {
                     showToast(`❌ Hata: ${error.message}`, 'error');
@@ -1001,11 +1087,14 @@
                                 <span class="setting-label">Her</span>
                                 <div class="time-inputs">
                                     <input type="number" class="number-input" id="time-hours-${id}" 
-                                           value="${settings.auto_clean_time_hours || 0}" min="0" max="23" onclick="event.stopPropagation()">s
+                                           value="${settings.auto_clean_time_hours || 0}" min="0" max="23" 
+                                           onclick="event.stopPropagation()">s
                                     <input type="number" class="number-input" id="time-minutes-${id}" 
-                                           value="${settings.auto_clean_time_minutes || 5}" min="0" max="59" onclick="event.stopPropagation()">dk
+                                           value="${settings.auto_clean_time_minutes || 5}" min="0" max="59" 
+                                           onclick="event.stopPropagation()">dk
                                     <input type="number" class="number-input" id="time-seconds-${id}" 
-                                           value="${settings.auto_clean_time_seconds || 0}" min="0" max="59" onclick="event.stopPropagation()">sn
+                                           value="${settings.auto_clean_time_seconds || 0}" min="0" max="59" 
+                                           onclick="event.stopPropagation()">sn
                                 </div>
                             </div>
                             
@@ -1022,7 +1111,8 @@
                                 <span class="setting-label">Her X kopyada</span>
                                 <div class="setting-value">
                                     <input type="number" class="number-input" id="copy-interval-${id}" 
-                                           value="${settings.auto_clean_copy_interval || 10}" min="1" max="100" onclick="event.stopPropagation()">
+                                           value="${settings.auto_clean_copy_interval || 10}" min="1" max="100" 
+                                           onclick="event.stopPropagation()">
                                 </div>
                             </div>
                             
@@ -1039,7 +1129,8 @@
                                 <span class="setting-label">Her X desende</span>
                                 <div class="setting-value">
                                     <input type="number" class="number-input" id="pattern-interval-${id}" 
-                                           value="${settings.auto_clean_pattern_interval || 3}" min="1" max="20" onclick="event.stopPropagation()">
+                                           value="${settings.auto_clean_pattern_interval || 3}" min="1" max="20" 
+                                           onclick="event.stopPropagation()">
                                 </div>
                             </div>
                             
@@ -1057,8 +1148,12 @@
                         </div>
                         
                         <div class="machine-settings-content ${isMachineSettingsOpen ? 'open' : ''}" id="machine-settings-content-${id}">
-                            <input type="text" class="machine-name-input" id="machine-name-${id}" 
-                                   value="${displayName}" placeholder="Makine ismi" onclick="event.stopPropagation()">
+                            <input type="text" 
+                                   class="machine-name-input" 
+                                   id="machine-name-${id}" 
+                                   value="${displayName}" 
+                                   placeholder="Makine ismi" 
+                                   onclick="event.stopPropagation()">
                             <div class="machine-btn-row">
                                 <button class="btn-save-name" onclick="saveMachineName('${id}', event)">
                                     💾 İsmi Kaydet
@@ -1080,6 +1175,12 @@
         // ================================
         
         function updateUI() {
+            // ✅ Güncelleme duraklatıldıysa sadece header'ı güncelle
+            if (updatePaused) {
+                updateHeader();
+                return;
+            }
+            
             const content = document.getElementById('content');
             const machineIds = Object.keys(machines);
             
@@ -1109,6 +1210,11 @@
             html += '</div>';
             content.innerHTML = html;
             
+            updateHeader();
+        }
+        
+        function updateHeader() {
+            const machineIds = Object.keys(machines);
             const onlineCount = machineIds.filter(id => isOnline(machines[id])).length;
             document.getElementById('connectionStatus').textContent = `${onlineCount}/${machineIds.length} makine çevrimiçi`;
             document.getElementById('connectionStatus').className = onlineCount > 0 ? 'status online' : 'status';
