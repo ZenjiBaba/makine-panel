@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🖨️ Makine Kontrol</title>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 10px;
+        }
+        
+        .header {
+            text-align: center;
+            padding: 15px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .header h1 {
+            font-size: 1.5em;
+            margin-bottom: 5px;
+        }
+        
+        .header .status {
+            font-size: 0.9em;
+            color: #888;
+        }
+        
+        .header .status.online {
+            color: #4ade80;
+        }
+        
+        .machines-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+        }
+        
+        .machine-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .machine-card.online {
+            border-color: #4ade80;
+            box-shadow: 0 0 20px rgba(74, 222, 128, 0.2);
+        }
+        
+        .machine-card.offline {
+            border-color: #ef4444;
+            opacity: 0.6;
+        }
+        
+        .machine-card.printing {
+            border-color: #3b82f6;
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+            animation: pulse 2s infinite;
+        }
+        
+        .machine-card.paused {
+            border-color: #f59e0b;
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.3);
+        }
+        
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.3); }
+            50% { box-shadow: 0 0 30px rgba(59, 130, 246, 0.5); }
+        }
+        
+        .machine-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .machine-name {
+            font-size: 1.3em;
+            font-weight: bold;
+        }
+        
+        .machine-status {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+        
+        .status-printing {
+            background: #3b82f6;
+            color: white;
+        }
+        
+        .status-paused {
+            background: #f59e0b;
+            color: black;
+        }
+        
+        .status-ready {
+            background: #4ade80;
+            color: black;
+        }
+        
+        .status-idle {
+            background: #6b7280;
+            color: white;
+        }
+        
+        .status-offline {
+            background: #ef4444;
+            color: white;
+        }
+        
+        .job-info {
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .job-name {
+            font-size: 0.9em;
+            color: #a5b4fc;
+            margin-bottom: 10px;
+            word-break: break-all;
+        }
+        
+        .progress-container {
+            margin-bottom: 10px;
+        }
+        
+        .progress-bar {
+            height: 25px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            border-radius: 12px;
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 50px;
+        }
+        
+        .progress-text {
+            font-size: 0.85em;
+            font-weight: bold;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+        }
+        
+        .stats-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.9em;
+        }
+        
+        .stats-label {
+            color: #888;
+        }
+        
+        .stats-value {
+            color: #fff;
+            font-weight: 500;
+        }
+        
+        .control-buttons {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-top: 15px;
+        }
+        
+        .btn {
+            padding: 12px 8px;
+            border: none;
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .btn:active {
+            transform: scale(0.95);
+        }
+        
+        .btn-icon {
+            font-size: 1.4em;
+        }
+        
+        .btn-print {
+            background: linear-gradient(135deg, #4ade80, #22c55e);
+            color: black;
+        }
+        
+        .btn-pause {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: black;
+        }
+        
+        .btn-resume {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+        }
+        
+        .btn-cancel {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+        }
+        
+        .btn-clean {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            color: white;
+            grid-column: span 3;
+        }
+        
+        .btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        
+        .last-update {
+            text-align: center;
+            font-size: 0.75em;
+            color: #666;
+            margin-top: 8px;
+        }
+        
+        .no-machines {
+            text-align: center;
+            padding: 50px;
+            color: #888;
+        }
+        
+        .no-machines .icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 50px;
+        }
+        
+        .loading .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255,255,255,0.1);
+            border-top-color: #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 0.9em;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .toast.show {
+            opacity: 1;
+        }
+        
+        .toast.success {
+            background: #22c55e;
+        }
+        
+        .toast.error {
+            background: #ef4444;
+        }
+        
+        /* Refresh Button */
+        .refresh-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            border: none;
+            color: white;
+            font-size: 1.5em;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+            z-index: 100;
+        }
+        
+        .refresh-btn:active {
+            transform: scale(0.9);
+        }
+        
+        /* Queue Badge */
+        .queue-badge {
+            background: #6b7280;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 0.75em;
+            margin-left: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🖨️ Makine Kontrol Paneli</h1>
+        <div class="status" id="connectionStatus">Bağlanıyor...</div>
+    </div>
+    
+    <div id="content">
+        <div class="loading">
+            <div class="spinner"></div>
+            <p>Makineler yükleniyor...</p>
+        </div>
+    </div>
+    
+    <button class="refresh-btn" onclick="location.reload()">🔄</button>
+    
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // Firebase Ayarları - KENDİ BİLGİLERİNİ GİR
+        const firebaseConfig = {
+            apiKey: "AIzaSyXXXXXXXXXXXXXXXXXXXX",  // Bu gerekli değil realtime db için
+            databaseURL: "https://makine-otomasyon-183ab-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "makine-otomasyon-183ab"
+        };
+        
+        // Firebase Başlat
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        
+        // Makineleri tut
+        let machines = {};
+        
+        // Toast göster
+        function showToast(message, type = '') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast show ' + type;
+            setTimeout(() => {
+                toast.className = 'toast';
+            }, 3000);
+        }
+        
+        // Zaman farkını hesapla
+        function getTimeAgo(timestamp) {
+            if (!timestamp) return 'Bilinmiyor';
+            
+            const now = Date.now();
+            const diff = now - timestamp;
+            
+            if (diff < 60000) return 'Az önce';
+            if (diff < 3600000) return Math.floor(diff / 60000) + ' dk önce';
+            if (diff < 86400000) return Math.floor(diff / 3600000) + ' saat önce';
+            return Math.floor(diff / 86400000) + ' gün önce';
+        }
+        
+        // Makine online mı?
+        function isOnline(machine) {
+            if (!machine.last_seen) return false;
+            const diff = Date.now() - machine.last_seen;
+            return diff < 30000; // 30 saniye içinde güncelleme varsa online
+        }
+        
+        // Durum sınıfını al
+        function getStatusClass(machine) {
+            if (!isOnline(machine)) return 'status-offline';
+            
+            const status = machine.status || 'unknown';
+            
+            if (status === 'printing') return 'status-printing';
+            if (status === 'paused') return 'status-paused';
+            if (status === 'print_ready' || status === 'task_ready') return 'status-ready';
+            return 'status-idle';
+        }
+        
+        // Durum metnini al
+        function getStatusText(machine) {
+            if (!isOnline(machine)) return 'Çevrimdışı';
+            
+            const status = machine.status || 'unknown';
+            
+            const statusMap = {
+                'printing': '▶ Basılıyor',
+                'paused': '⏸ Duraklatıldı',
+                'print_ready': '🟢 Hazır',
+                'task_ready': '⚪ Bekliyor',
+                'idle': '💤 Boşta',
+                'unknown': '❓ Bilinmiyor'
+            };
+            
+            return statusMap[status] || status;
+        }
+        
+        // Kart sınıfını al
+        function getCardClass(machine) {
+            if (!isOnline(machine)) return 'offline';
+            if (machine.is_paused) return 'paused';
+            if (machine.is_printing) return 'printing';
+            return 'online';
+        }
+        
+        // Komut gönder
+        function sendCommand(machineId, command) {
+            const commandRef = database.ref(`machines/${machineId}/pending_command`);
+            
+            commandRef.set({
+                command: command,
+                id: Date.now().toString(),
+                sent_at: Date.now()
+            }).then(() => {
+                showToast(`✅ ${command.toUpperCase()} gönderildi`, 'success');
+            }).catch((error) => {
+                showToast(`❌ Hata: ${error.message}`, 'error');
+            });
+        }
+        
+        // Makine kartı oluştur
+        function createMachineCard(id, machine) {
+            const online = isOnline(machine);
+            const cardClass = getCardClass(machine);
+            const statusClass = getStatusClass(machine);
+            const statusText = getStatusText(machine);
+            
+            const progress = machine.progress || 0;
+            const jobName = machine.job_name || '-';
+            const currentCopy = machine.current_copy || 0;
+            const totalCopies = machine.total_copies || 0;
+            const elapsedTime = machine.elapsed_time || '00:00:00';
+            const remainingTime = machine.remaining_time || '00:00:00';
+            const totalLength = machine.total_length_m || 0;
+            const queueCount = machine.queue_count || 0;
+            
+            const isPaused = machine.is_paused;
+            const isPrinting = machine.is_printing;
+            
+            return `
+                <div class="machine-card ${cardClass}">
+                    <div class="machine-header">
+                        <div>
+                            <span class="machine-name">${id}</span>
+                            ${queueCount > 0 ? `<span class="queue-badge">+${queueCount} kuyruk</span>` : ''}
+                        </div>
+                        <span class="machine-status ${statusClass}">${statusText}</span>
+                    </div>
+                    
+                    <div class="job-info">
+                        <div class="job-name">📄 ${jobName}</div>
+                        
+                        <div class="progress-container">
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${Math.max(progress, 5)}%">
+                                    <span class="progress-text">${progress.toFixed(1)}%</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="stats-row">
+                            <span class="stats-label">📋 Kopya:</span>
+                            <span class="stats-value">${currentCopy} / ${totalCopies}</span>
+                        </div>
+                        
+                        <div class="stats-row">
+                            <span class="stats-label">⏱️ Süre:</span>
+                            <span class="stats-value">${elapsedTime}</span>
+                        </div>
+                        
+                        <div class="stats-row">
+                            <span class="stats-label">⏳ Kalan:</span>
+                            <span class="stats-value">${remainingTime}</span>
+                        </div>
+                        
+                        <div class="stats-row">
+                            <span class="stats-label">📏 Metre:</span>
+                            <span class="stats-value">${totalLength.toFixed(1)} m</span>
+                        </div>
+                    </div>
+                    
+                    <div class="control-buttons">
+                        <button class="btn btn-print" onclick="sendCommand('${id}', 'print')" ${!online || isPrinting ? 'disabled' : ''}>
+                            <span class="btn-icon">▶️</span>
+                            Print
+                        </button>
+                        
+                        ${isPaused ? `
+                            <button class="btn btn-resume" onclick="sendCommand('${id}', 'resume')" ${!online ? 'disabled' : ''}>
+                                <span class="btn-icon">▶️</span>
+                                Resume
+                            </button>
+                        ` : `
+                            <button class="btn btn-pause" onclick="sendCommand('${id}', 'pause')" ${!online || !isPrinting ? 'disabled' : ''}>
+                                <span class="btn-icon">⏸️</span>
+                                Pause
+                            </button>
+                        `}
+                        
+                        <button class="btn btn-cancel" onclick="sendCommand('${id}', 'cancel')" ${!online ? 'disabled' : ''}>
+                            <span class="btn-icon">⏹️</span>
+                            Cancel
+                        </button>
+                        
+                        <button class="btn btn-clean" onclick="sendCommand('${id}', 'clean')" ${!online ? 'disabled' : ''}>
+                            <span class="btn-icon">🧹</span>
+                            Clean Strong
+                        </button>
+                    </div>
+                    
+                    <div class="last-update">
+                        Son güncelleme: ${getTimeAgo(machine.last_seen)}
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Sayfayı güncelle
+        function updateUI() {
+            const content = document.getElementById('content');
+            const machineIds = Object.keys(machines);
+            
+            if (machineIds.length === 0) {
+                content.innerHTML = `
+                    <div class="no-machines">
+                        <div class="icon">🖨️</div>
+                        <h2>Makine bulunamadı</h2>
+                        <p>Henüz bağlı makine yok.<br>Python programını çalıştırın.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Online makineleri öne al
+            machineIds.sort((a, b) => {
+                const aOnline = isOnline(machines[a]);
+                const bOnline = isOnline(machines[b]);
+                if (aOnline && !bOnline) return -1;
+                if (!aOnline && bOnline) return 1;
+                return a.localeCompare(b);
+            });
+            
+            let html = '<div class="machines-grid">';
+            
+            for (const id of machineIds) {
+                html += createMachineCard(id, machines[id]);
+            }
+            
+            html += '</div>';
+            content.innerHTML = html;
+            
+            // Bağlantı durumunu güncelle
+            const onlineCount = machineIds.filter(id => isOnline(machines[id])).length;
+            const statusEl = document.getElementById('connectionStatus');
+            statusEl.textContent = `${onlineCount}/${machineIds.length} makine çevrimiçi`;
+            statusEl.className = onlineCount > 0 ? 'status online' : 'status';
+        }
+        
+        // Firebase dinleyici
+        function startListening() {
+            const machinesRef = database.ref('machines');
+            
+            machinesRef.on('value', (snapshot) => {
+                machines = snapshot.val() || {};
+                updateUI();
+            }, (error) => {
+                console.error('Firebase error:', error);
+                document.getElementById('connectionStatus').textContent = 'Bağlantı hatası!';
+                document.getElementById('connectionStatus').className = 'status';
+            });
+        }
+        
+        // Sayfa yüklendiğinde başlat
+        document.addEventListener('DOMContentLoaded', () => {
+            startListening();
+            
+            // Her 10 saniyede UI güncelle (zaman bilgisi için)
+            setInterval(updateUI, 10000);
+        });
+    </script>
+</body>
+</html>
