@@ -101,9 +101,7 @@
             margin-top: 8px;
         }
         
-        .pause-indicator.show {
-            display: inline-block;
-        }
+        .pause-indicator.show { display: inline-block; }
         
         .logout-btn {
             position: absolute;
@@ -115,6 +113,29 @@
             color: #ef4444;
             cursor: pointer;
             font-size: 0.85em;
+        }
+        
+        /* GRUP BAŞLIKLARI */
+        .printer-group {
+            margin-bottom: 20px;
+        }
+        
+        .group-header {
+            padding: 10px 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+        
+        .group-header.grando {
+            background: linear-gradient(135deg, #1e3a5f, #0c1929);
+            border-left: 4px solid #3b82f6;
+        }
+        
+        .group-header.trujet {
+            background: linear-gradient(135deg, #5c3d0e, #2d1e07);
+            border-left: 4px solid #f59e0b;
         }
         
         .machines-grid {
@@ -131,18 +152,53 @@
             transition: all 0.3s ease;
         }
         
-        .machine-card.online { border-color: #4ade80; box-shadow: 0 0 20px rgba(74, 222, 128, 0.2); }
-        .machine-card.offline { border-color: #ef4444; opacity: 0.6; }
-        .machine-card.printing { border-color: #3b82f6; box-shadow: 0 0 20px rgba(59, 130, 246, 0.3); animation: pulse 2s infinite; }
-        .machine-card.paused { border-color: #f59e0b; box-shadow: 0 0 20px rgba(245, 158, 11, 0.3); }
+        .machine-card.online { box-shadow: 0 0 20px rgba(74, 222, 128, 0.2); }
+        .machine-card.offline { opacity: 0.6; }
+        .machine-card.printing { animation: pulse 2s infinite; }
+        .machine-card.paused { box-shadow: 0 0 20px rgba(245, 158, 11, 0.3); }
+        
+        /* Grando renkleri */
+        .machine-card.grando { border-color: #3b82f6; }
+        .machine-card.grando.online { border-color: #3b82f6; }
+        .machine-card.grando.printing { border-color: #3b82f6; box-shadow: 0 0 20px rgba(59, 130, 246, 0.3); }
+        
+        /* TruJet renkleri */
+        .machine-card.trujet { border-color: #f59e0b; }
+        .machine-card.trujet.online { border-color: #f59e0b; }
+        .machine-card.trujet.printing { border-color: #f59e0b; box-shadow: 0 0 20px rgba(245, 158, 11, 0.3); }
         
         @keyframes pulse {
-            0%, 100% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.3); }
-            50% { box-shadow: 0 0 30px rgba(59, 130, 246, 0.5); }
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
         }
         
         .machine-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .machine-name { font-size: 1.3em; font-weight: bold; }
+        
+        .machine-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .printer-badge {
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.7em;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .printer-badge.grando {
+            background: #1e3a5f;
+            color: #60a5fa;
+        }
+        
+        .printer-badge.trujet {
+            background: #5c3d0e;
+            color: #fbbf24;
+        }
+        
+        .machine-name { font-size: 1.2em; font-weight: bold; }
         .machine-status { padding: 5px 12px; border-radius: 20px; font-size: 0.8em; font-weight: bold; }
         
         .status-printing { background: #3b82f6; color: white; }
@@ -170,7 +226,6 @@
         
         .progress-fill {
             height: 100%;
-            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
             border-radius: 12px;
             transition: width 0.5s ease;
             display: flex;
@@ -178,6 +233,9 @@
             justify-content: center;
             min-width: 50px;
         }
+        
+        .progress-fill.grando { background: linear-gradient(90deg, #3b82f6, #8b5cf6); }
+        .progress-fill.trujet { background: linear-gradient(90deg, #f59e0b, #ef4444); }
         
         .progress-text { font-size: 0.85em; font-weight: bold; color: white; }
         
@@ -207,7 +265,9 @@
         .btn-pause { background: linear-gradient(135deg, #f59e0b, #d97706); color: black; }
         .btn-resume { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; }
         .btn-cancel { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
-        .btn-clean { background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white; grid-column: span 3; }
+        .btn-check { background: linear-gradient(135deg, #10b981, #059669); color: white; }
+        .btn-clean { background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white; }
+        .btn-load-ink { background: linear-gradient(135deg, #06b6d4, #0891b2); color: white; }
         .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
         
         /* YÖN BUTONLARI */
@@ -266,19 +326,14 @@
             user-select: none;
         }
         
-        .settings-header h3 {
-            font-size: 1em;
-            color: #a5b4fc;
-        }
+        .settings-header h3 { font-size: 1em; color: #a5b4fc; }
         
         .settings-toggle {
             font-size: 1.2em;
             transition: transform 0.3s;
         }
         
-        .settings-toggle.open {
-            transform: rotate(180deg);
-        }
+        .settings-toggle.open { transform: rotate(180deg); }
         
         .settings-content {
             max-height: 0;
@@ -300,20 +355,9 @@
             border-bottom: 1px solid rgba(255,255,255,0.05);
         }
         
-        .setting-row:last-child {
-            border-bottom: none;
-        }
-        
-        .setting-label {
-            font-size: 0.85em;
-            color: #ccc;
-        }
-        
-        .setting-value {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
+        .setting-row:last-child { border-bottom: none; }
+        .setting-label { font-size: 0.85em; color: #ccc; }
+        .setting-value { display: flex; align-items: center; gap: 8px; }
         
         .toggle-switch {
             position: relative;
@@ -325,9 +369,7 @@
             transition: background 0.3s;
         }
         
-        .toggle-switch.on {
-            background: #4ade80;
-        }
+        .toggle-switch.on { background: #4ade80; }
         
         .toggle-switch::after {
             content: '';
@@ -341,9 +383,7 @@
             transition: left 0.3s;
         }
         
-        .toggle-switch.on::after {
-            left: 26px;
-        }
+        .toggle-switch.on::after { left: 26px; }
         
         .number-input {
             width: 60px;
@@ -356,21 +396,10 @@
             font-size: 0.9em;
         }
         
-        .number-input:focus {
-            outline: none;
-            border-color: #3b82f6;
-        }
+        .number-input:focus { outline: none; border-color: #3b82f6; }
         
-        .time-inputs {
-            display: flex;
-            gap: 5px;
-            align-items: center;
-            font-size: 0.8em;
-        }
-        
-        .time-inputs input {
-            width: 45px;
-        }
+        .time-inputs { display: flex; gap: 5px; align-items: center; font-size: 0.8em; }
+        .time-inputs input { width: 45px; }
         
         .save-settings-btn {
             width: 100%;
@@ -385,12 +414,9 @@
             font-size: 0.95em;
         }
         
-        .save-settings-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
+        .save-settings-btn:disabled { opacity: 0.5; cursor: not-allowed; }
         
-        /* MAKİNE AYARLARI BÖLÜMÜ */
+        /* MAKİNE AYARLARI */
         .machine-settings-section {
             background: rgba(0,0,0,0.3);
             border-radius: 12px;
@@ -407,10 +433,7 @@
             user-select: none;
         }
         
-        .machine-settings-header h3 {
-            font-size: 1em;
-            color: #f59e0b;
-        }
+        .machine-settings-header h3 { font-size: 1em; color: #f59e0b; }
         
         .machine-settings-content {
             max-height: 0;
@@ -435,15 +458,9 @@
             margin-bottom: 10px;
         }
         
-        .machine-name-input:focus {
-            outline: none;
-            border-color: #f59e0b;
-        }
+        .machine-name-input:focus { outline: none; border-color: #f59e0b; }
         
-        .machine-btn-row {
-            display: flex;
-            gap: 10px;
-        }
+        .machine-btn-row { display: flex; gap: 10px; }
         
         .btn-save-name {
             flex: 1;
@@ -466,10 +483,7 @@
             cursor: pointer;
         }
         
-        .btn-save-name:disabled, .btn-delete-machine:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
+        .btn-save-name:disabled, .btn-delete-machine:disabled { opacity: 0.5; cursor: not-allowed; }
         
         .last-update { text-align: center; font-size: 0.75em; color: #666; margin-top: 8px; }
         
@@ -536,9 +550,7 @@
             z-index: 2000;
         }
         
-        .modal-overlay.show {
-            display: flex;
-        }
+        .modal-overlay.show { display: flex; }
         
         .modal-box {
             background: #1f2937;
@@ -550,20 +562,10 @@
             border: 1px solid rgba(255,255,255,0.1);
         }
         
-        .modal-box h2 {
-            margin-bottom: 15px;
-            color: #ef4444;
-        }
+        .modal-box h2 { margin-bottom: 15px; color: #ef4444; }
+        .modal-box p { margin-bottom: 25px; color: #888; }
         
-        .modal-box p {
-            margin-bottom: 25px;
-            color: #888;
-        }
-        
-        .modal-buttons {
-            display: flex;
-            gap: 15px;
-        }
+        .modal-buttons { display: flex; gap: 15px; }
         
         .modal-btn {
             flex: 1;
@@ -575,15 +577,8 @@
             font-size: 1em;
         }
         
-        .modal-btn-cancel {
-            background: #374151;
-            color: white;
-        }
-        
-        .modal-btn-confirm {
-            background: linear-gradient(135deg, #ef4444, #dc2626);
-            color: white;
-        }
+        .modal-btn-cancel { background: #374151; color: white; }
+        .modal-btn-confirm { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
     </style>
 </head>
 <body>
@@ -650,12 +645,8 @@
         let machines = {};
         let currentUser = null;
         let machineToDelete = null;
-        
-        // ✅ Açık olan panelleri takip et
-        let openSettings = {};        // Otomatik temizlik ayarları açık mı
-        let openMachineSettings = {}; // Makine ayarları açık mı
-        
-        // ✅ Güncelleme durduruluyor mu?
+        let openSettings = {};
+        let openMachineSettings = {};
         let updatePaused = false;
         
         // ================================
@@ -741,496 +732,563 @@
             return (Date.now() - machine.last_seen) < 30000;
         }
         
+        function getPrinterType(machine) {
+            return machine.printer_type || 'grando';
+        }
+        
+        function getPrinterLabel(type) {
+            if (type === 'trujet') return 'TruJet';
+            return 'Grando';
+        }
+        
         function getStatusClass(machine) {
             if (!isOnline(machine)) return 'status-offline';
             const status = machine.status || 'unknown';
             if (status === 'printing') return 'status-printing';
             if (status === 'paused') return 'status-paused';
-            if (status === 'print_ready' || status === 'task_ready') return 'status-ready';
-            return 'status-idle';
+			if (status === 'print_ready' || status === 'task_ready') return 'status-ready';
+			return 'status-idle';
+			}
+    function getStatusText(machine) {
+        if (!isOnline(machine)) return 'Çevrimdışı';
+        const statusMap = {
+            'printing': '▶ Basılıyor',
+            'paused': '⏸ Duraklatıldı',
+            'print_ready': '🟢 Hazır',
+            'task_ready': '⚪ Bekliyor',
+            'idle': '💤 Boşta'
+        };
+        return statusMap[machine.status] || machine.status || 'Bilinmiyor';
+    }
+    
+    function getCardClass(machine) {
+        // Makine tipini al (grando veya trujet)
+        const type = getPrinterType(machine);
+        
+        let classes = type; // CSS için sınıf ekle
+        
+        if (!isOnline(machine)) return classes + ' offline';
+        if (machine.is_paused) return classes + ' paused';
+        if (machine.is_printing) return classes + ' printing';
+        return classes + ' online';
+    }
+    
+    // ================================
+    // PAUSE/RESUME UPDATE
+    // ================================
+    
+    function checkPauseState() {
+        const hasOpenSettings = Object.values(openSettings).some(v => v === true);
+        const hasOpenMachineSettings = Object.values(openMachineSettings).some(v => v === true);
+        
+        updatePaused = hasOpenSettings || hasOpenMachineSettings;
+        
+        const indicator = document.getElementById('pauseIndicator');
+        if (updatePaused) {
+            indicator.classList.add('show');
+        } else {
+            indicator.classList.remove('show');
+        }
+    }
+    
+    function resumeUpdates() {
+        updatePaused = false;
+        document.getElementById('pauseIndicator').classList.remove('show');
+        updateUI();
+    }
+    
+    // ================================
+    // COMMANDS
+    // ================================
+    
+    function sendCommand(machineId, command) {
+        if (!currentUser) {
+            showToast('❌ Oturum açın!', 'error');
+            return;
         }
         
-        function getStatusText(machine) {
-            if (!isOnline(machine)) return 'Çevrimdışı';
-            const statusMap = {
-                'printing': '▶ Basılıyor',
-                'paused': '⏸ Duraklatıldı',
-                'print_ready': '🟢 Hazır',
-                'task_ready': '⚪ Bekliyor',
-                'idle': '💤 Boşta'
-            };
-            return statusMap[machine.status] || machine.status || 'Bilinmiyor';
+        database.ref(`machines/${machineId}/pending_command`).set({
+            command: command,
+            id: Date.now().toString(),
+            sent_at: Date.now(),
+            sent_by: currentUser.email
+        }).then(() => {
+            showToast(`✅ ${command.toUpperCase()} gönderildi`, 'success');
+        }).catch((error) => {
+            showToast(`❌ Hata: ${error.message}`, 'error');
+        });
+    }
+    
+    // ================================
+    // SETTINGS TOGGLE
+    // ================================
+    
+    function toggleSettings(machineId, event) {
+        event.stopPropagation();
+        
+        const content = document.getElementById(`settings-content-${machineId}`);
+        const toggle = document.getElementById(`settings-toggle-${machineId}`);
+        
+        if (openSettings[machineId]) {
+            content.classList.remove('open');
+            toggle.classList.remove('open');
+            openSettings[machineId] = false;
+        } else {
+            content.classList.add('open');
+            toggle.classList.add('open');
+            openSettings[machineId] = true;
         }
         
-        function getCardClass(machine) {
-            if (!isOnline(machine)) return 'offline';
-            if (machine.is_paused) return 'paused';
-            if (machine.is_printing) return 'printing';
-            return 'online';
+        checkPauseState();
+    }
+    
+    function toggleMachineSettings(machineId, event) {
+        event.stopPropagation();
+        
+        const content = document.getElementById(`machine-settings-content-${machineId}`);
+        const toggle = document.getElementById(`machine-settings-toggle-${machineId}`);
+        
+        if (openMachineSettings[machineId]) {
+            content.classList.remove('open');
+            toggle.classList.remove('open');
+            openMachineSettings[machineId] = false;
+        } else {
+            content.classList.add('open');
+            toggle.classList.add('open');
+            openMachineSettings[machineId] = true;
         }
         
-        // ================================
-        // PAUSE/RESUME UPDATE
-        // ================================
+        checkPauseState();
+    }
+    
+    function toggleSetting(machineId, setting, event) {
+        event.stopPropagation();
+        const el = document.getElementById(`${setting}-${machineId}`);
+        el.classList.toggle('on');
+    }
+    
+    function saveSettings(machineId, event) {
+        event.stopPropagation();
         
-        function checkPauseState() {
-            // Herhangi bir ayar paneli açık mı kontrol et
-            const hasOpenSettings = Object.values(openSettings).some(v => v === true);
-            const hasOpenMachineSettings = Object.values(openMachineSettings).some(v => v === true);
-            
-            updatePaused = hasOpenSettings || hasOpenMachineSettings;
-            
-            // Göstergeyi güncelle
-            const indicator = document.getElementById('pauseIndicator');
-            if (updatePaused) {
-                indicator.classList.add('show');
-            } else {
-                indicator.classList.remove('show');
-            }
-        }
+        const settings = {
+            auto_clean_time_enabled: document.getElementById(`time-enabled-${machineId}`).classList.contains('on'),
+            auto_clean_time_hours: parseInt(document.getElementById(`time-hours-${machineId}`).value) || 0,
+            auto_clean_time_minutes: parseInt(document.getElementById(`time-minutes-${machineId}`).value) || 5,
+            auto_clean_time_seconds: parseInt(document.getElementById(`time-seconds-${machineId}`).value) || 0,
+            auto_clean_copy_enabled: document.getElementById(`copy-enabled-${machineId}`).classList.contains('on'),
+            auto_clean_copy_interval: parseInt(document.getElementById(`copy-interval-${machineId}`).value) || 10,
+            auto_clean_pattern_enabled: document.getElementById(`pattern-enabled-${machineId}`).classList.contains('on'),
+            auto_clean_pattern_interval: parseInt(document.getElementById(`pattern-interval-${machineId}`).value) || 3,
+            from_web: true,
+            last_updated: Date.now()
+        };
         
-        function resumeUpdates() {
-            updatePaused = false;
-            document.getElementById('pauseIndicator').classList.remove('show');
-            updateUI(); // Hemen güncelle
-        }
-        
-        // ================================
-        // COMMANDS
-        // ================================
-        
-        function sendCommand(machineId, command) {
-            if (!currentUser) {
-                showToast('❌ Oturum açın!', 'error');
-                return;
-            }
-            
-            database.ref(`machines/${machineId}/pending_command`).set({
-                command: command,
-                id: Date.now().toString(),
-                sent_at: Date.now(),
-                sent_by: currentUser.email
-            }).then(() => {
-                showToast(`✅ ${command.toUpperCase()} gönderildi`, 'success');
-            }).catch((error) => {
-                showToast(`❌ Hata: ${error.message}`, 'error');
-            });
-        }
-        
-        // ================================
-        // SETTINGS TOGGLE
-        // ================================
-        
-        function toggleSettings(machineId, event) {
-            event.stopPropagation();
-            
-            const content = document.getElementById(`settings-content-${machineId}`);
-            const toggle = document.getElementById(`settings-toggle-${machineId}`);
-            
-            if (openSettings[machineId]) {
-                // Kapatılıyor
+        database.ref(`machines/${machineId}/settings`).set(settings)
+            .then(() => {
+                showToast('✅ Ayarlar kaydedildi!', 'success');
+                
+                const content = document.getElementById(`settings-content-${machineId}`);
+                const toggle = document.getElementById(`settings-toggle-${machineId}`);
                 content.classList.remove('open');
                 toggle.classList.remove('open');
                 openSettings[machineId] = false;
-            } else {
-                // Açılıyor
-                content.classList.add('open');
-                toggle.classList.add('open');
-                openSettings[machineId] = true;
-            }
-            
-            checkPauseState();
-        }
-        
-        function toggleMachineSettings(machineId, event) {
-            event.stopPropagation();
-            
-            const content = document.getElementById(`machine-settings-content-${machineId}`);
-            const toggle = document.getElementById(`machine-settings-toggle-${machineId}`);
-            
-            if (openMachineSettings[machineId]) {
-                // Kapatılıyor
-                content.classList.remove('open');
-                toggle.classList.remove('open');
-                openMachineSettings[machineId] = false;
-            } else {
-                // Açılıyor
-                content.classList.add('open');
-                toggle.classList.add('open');
-                openMachineSettings[machineId] = true;
-            }
-            
-            checkPauseState();
-        }
-        
-        function toggleSetting(machineId, setting, event) {
-            event.stopPropagation();
-            const el = document.getElementById(`${setting}-${machineId}`);
-            el.classList.toggle('on');
-        }
-        
-        function saveSettings(machineId, event) {
-            event.stopPropagation();
-            
-            const settings = {
-                auto_clean_time_enabled: document.getElementById(`time-enabled-${machineId}`).classList.contains('on'),
-                auto_clean_time_hours: parseInt(document.getElementById(`time-hours-${machineId}`).value) || 0,
-                auto_clean_time_minutes: parseInt(document.getElementById(`time-minutes-${machineId}`).value) || 5,
-                auto_clean_time_seconds: parseInt(document.getElementById(`time-seconds-${machineId}`).value) || 0,
-                auto_clean_copy_enabled: document.getElementById(`copy-enabled-${machineId}`).classList.contains('on'),
-                auto_clean_copy_interval: parseInt(document.getElementById(`copy-interval-${machineId}`).value) || 10,
-                auto_clean_pattern_enabled: document.getElementById(`pattern-enabled-${machineId}`).classList.contains('on'),
-                auto_clean_pattern_interval: parseInt(document.getElementById(`pattern-interval-${machineId}`).value) || 3,
-                from_web: true,
-                last_updated: Date.now()
-            };
-            
-            database.ref(`machines/${machineId}/settings`).set(settings)
-                .then(() => {
-                    showToast('✅ Ayarlar kaydedildi!', 'success');
-                    
-                    // Paneli kapat ve güncellemeyi devam ettir
-                    const content = document.getElementById(`settings-content-${machineId}`);
-                    const toggle = document.getElementById(`settings-toggle-${machineId}`);
-                    content.classList.remove('open');
-                    toggle.classList.remove('open');
-                    openSettings[machineId] = false;
-                    
-                    checkPauseState();
-                    resumeUpdates();
-                })
-                .catch((error) => {
-                    showToast(`❌ Hata: ${error.message}`, 'error');
-                });
-        }
-        
-        // ================================
-        // MACHINE SETTINGS (Rename/Delete)
-        // ================================
-        
-        function saveMachineName(machineId, event) {
-            event.stopPropagation();
-            
-            const input = document.getElementById(`machine-name-${machineId}`);
-            const newName = input.value.trim();
-            
-            if (!newName) {
-                showToast('❌ İsim boş olamaz!', 'error');
-                return;
-            }
-            
-            database.ref(`machines/${machineId}`).update({
-                display_name: newName
-            }).then(() => {
-                showToast('✅ Makine ismi güncellendi!', 'success');
-                
-                // Paneli kapat ve güncellemeyi devam ettir
-                const content = document.getElementById(`machine-settings-content-${machineId}`);
-                const toggle = document.getElementById(`machine-settings-toggle-${machineId}`);
-                content.classList.remove('open');
-                toggle.classList.remove('open');
-                openMachineSettings[machineId] = false;
                 
                 checkPauseState();
                 resumeUpdates();
-            }).catch((error) => {
+            })
+            .catch((error) => {
                 showToast(`❌ Hata: ${error.message}`, 'error');
             });
+    }
+    
+    // ================================
+    // MACHINE SETTINGS (Rename/Delete)
+    // ================================
+    
+    function saveMachineName(machineId, event) {
+        event.stopPropagation();
+        
+        const input = document.getElementById(`machine-name-${machineId}`);
+        const newName = input.value.trim();
+        
+        if (!newName) {
+            showToast('❌ İsim boş olamaz!', 'error');
+            return;
         }
         
-        function openDeleteModal(machineId, event) {
-            event.stopPropagation();
-            machineToDelete = machineId;
-            const displayName = machines[machineId]?.display_name || machineId;
-            document.getElementById('deleteModalText').textContent = `"${displayName}" makinesini silmek istediğinize emin misiniz? Bu işlem geri alınamaz!`;
-            document.getElementById('deleteModal').classList.add('show');
-        }
-        
-        function closeDeleteModal() {
-            machineToDelete = null;
-            document.getElementById('deleteModal').classList.remove('show');
-        }
-        
-        function confirmDelete() {
-            if (!machineToDelete) return;
+        database.ref(`machines/${machineId}`).update({
+            display_name: newName
+        }).then(() => {
+            showToast('✅ Makine ismi güncellendi!', 'success');
             
-            const idToDelete = machineToDelete;
+            const content = document.getElementById(`machine-settings-content-${machineId}`);
+            const toggle = document.getElementById(`machine-settings-toggle-${machineId}`);
+            content.classList.remove('open');
+            toggle.classList.remove('open');
+            openMachineSettings[machineId] = false;
             
-            database.ref(`machines/${idToDelete}`).remove()
-                .then(() => {
-                    showToast('✅ Makine silindi!', 'success');
-                    closeDeleteModal();
-                    
-                    // Bu makine için açık panelleri temizle
-                    delete openSettings[idToDelete];
-                    delete openMachineSettings[idToDelete];
-                    
-                    checkPauseState();
-                    resumeUpdates();
-                })
-                .catch((error) => {
-                    showToast(`❌ Hata: ${error.message}`, 'error');
-                });
-        }
+            checkPauseState();
+            resumeUpdates();
+        }).catch((error) => {
+            showToast(`❌ Hata: ${error.message}`, 'error');
+        });
+    }
+    
+    function openDeleteModal(machineId, event) {
+        event.stopPropagation();
+        machineToDelete = machineId;
+        const displayName = machines[machineId]?.display_name || machineId;
+        document.getElementById('deleteModalText').textContent = `"${displayName}" makinesini silmek istediğinize emin misiniz? Bu işlem geri alınamaz!`;
+        document.getElementById('deleteModal').classList.add('show');
+    }
+    
+    function closeDeleteModal() {
+        machineToDelete = null;
+        document.getElementById('deleteModal').classList.remove('show');
+    }
+    
+    function confirmDelete() {
+        if (!machineToDelete) return;
         
-        // ================================
-        // MACHINE CARD
-        // ================================
+        const idToDelete = machineToDelete;
         
-        function createMachineCard(id, machine) {
-            const online = isOnline(machine);
-            const progress = machine.progress || 0;
-            const isPaused = machine.is_paused;
-            const isPrinting = machine.is_printing;
-            const settings = machine.settings || {};
-            const displayName = machine.display_name || id;
-            
-            const isSettingsOpen = openSettings[id] || false;
-            const isMachineSettingsOpen = openMachineSettings[id] || false;
-            
-            return `
-                <div class="machine-card ${getCardClass(machine)}">
-                    <div class="machine-header">
-                        <div>
+        database.ref(`machines/${idToDelete}`).remove()
+            .then(() => {
+                showToast('✅ Makine silindi!', 'success');
+                closeDeleteModal();
+                
+                delete openSettings[idToDelete];
+                delete openMachineSettings[idToDelete];
+                
+                checkPauseState();
+                resumeUpdates();
+            })
+            .catch((error) => {
+                showToast(`❌ Hata: ${error.message}`, 'error');
+            });
+    }
+    
+    // ================================
+    // MACHINE CARD
+    // ================================
+    
+    function createMachineCard(id, machine) {
+        const online = isOnline(machine);
+        const progress = machine.progress || 0;
+        const isPaused = machine.is_paused;
+        const isPrinting = machine.is_printing;
+        const settings = machine.settings || {};
+        const displayName = machine.display_name || id;
+        const printerType = getPrinterType(machine);
+        const printerLabel = getPrinterLabel(printerType);
+        
+        const isSettingsOpen = openSettings[id] || false;
+        const isMachineSettingsOpen = openMachineSettings[id] || false;
+        
+        return `
+            <div class="machine-card ${getCardClass(machine)}">
+                <div class="machine-header">
+                    <div>
+                        <div class="machine-title">
+                            <span class="printer-badge ${printerType}">${printerLabel}</span>
                             <span class="machine-name">${displayName}</span>
-                            ${(machine.queue_count || 0) > 0 ? `<span class="queue-badge">+${machine.queue_count} kuyruk</span>` : ''}
                         </div>
-                        <span class="machine-status ${getStatusClass(machine)}">${getStatusText(machine)}</span>
+                        ${(machine.queue_count || 0) > 0 ? `<span class="queue-badge">+${machine.queue_count} kuyruk</span>` : ''}
                     </div>
+                    <span class="machine-status ${getStatusClass(machine)}">${getStatusText(machine)}</span>
+                </div>
+                
+                <div class="job-info">
+                    <div class="job-name">📄 ${machine.job_name || '-'}</div>
                     
-                    <div class="job-info">
-                        <div class="job-name">📄 ${machine.job_name || '-'}</div>
-                        
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="width: ${Math.max(progress, 5)}%">
-                                <span class="progress-text">${progress.toFixed(1)}%</span>
-                            </div>
-                        </div>
-                        
-                        <div class="stats-row">
-                            <span class="stats-label">📋 Kopya:</span>
-                            <span class="stats-value">${machine.current_copy || 0} / ${machine.total_copies || 0}</span>
-                        </div>
-                        <div class="stats-row">
-                            <span class="stats-label">⏱️ Süre:</span>
-                            <span class="stats-value">${machine.elapsed_time || '00:00:00'}</span>
-                        </div>
-                        <div class="stats-row">
-                            <span class="stats-label">⏳ Kalan:</span>
-                            <span class="stats-value">${machine.remaining_time || '00:00:00'}</span>
-                        </div>
-                        <div class="stats-row">
-                            <span class="stats-label">📏 Metre:</span>
-                            <span class="stats-value">${(machine.total_length_m || 0).toFixed(1)} m</span>
+                    <div class="progress-bar">
+                        <div class="progress-fill ${printerType}" style="width: ${Math.max(progress, 5)}%">
+                            <span class="progress-text">${progress.toFixed(1)}%</span>
                         </div>
                     </div>
                     
-                    <!-- KONTROL BUTONLARI -->
-                    <div class="control-buttons">
-                        <button class="btn btn-print" onclick="sendCommand('${id}', 'print')" ${!online || isPrinting ? 'disabled' : ''}>
-                            <span class="btn-icon">▶️</span>Print
+                    <div class="stats-row">
+                        <span class="stats-label">📋 Kopya:</span>
+                        <span class="stats-value">${machine.current_copy || 0} / ${machine.total_copies || 0}</span>
+                    </div>
+                    <div class="stats-row">
+                        <span class="stats-label">⏱️ Süre:</span>
+                        <span class="stats-value">${machine.elapsed_time || '00:00:00'}</span>
+                    </div>
+                    <div class="stats-row">
+                        <span class="stats-label">⏳ Kalan:</span>
+                        <span class="stats-value">${machine.remaining_time || '00:00:00'}</span>
+                    </div>
+                    <div class="stats-row">
+                        <span class="stats-label">📏 Metre:</span>
+                        <span class="stats-value">${(machine.total_length_m || 0).toFixed(1)} m</span>
+                    </div>
+                </div>
+                
+                <!-- KONTROL BUTONLARI -->
+                <div class="control-buttons">
+                    <button class="btn btn-print" onclick="sendCommand('${id}', 'print')" ${!online || isPrinting ? 'disabled' : ''}>
+                        <span class="btn-icon">▶️</span>Print
+                    </button>
+                    
+                    ${isPaused ? `
+                        <button class="btn btn-resume" onclick="sendCommand('${id}', 'resume')" ${!online ? 'disabled' : ''}>
+                            <span class="btn-icon">▶️</span>Resume
                         </button>
-                        
-                        ${isPaused ? `
-                            <button class="btn btn-resume" onclick="sendCommand('${id}', 'resume')" ${!online ? 'disabled' : ''}>
-                                <span class="btn-icon">▶️</span>Resume
-                            </button>
-                        ` : `
-                            <button class="btn btn-pause" onclick="sendCommand('${id}', 'pause')" ${!online || !isPrinting ? 'disabled' : ''}>
-                                <span class="btn-icon">⏸️</span>Pause
-                            </button>
-                        `}
-                        
-                        <button class="btn btn-cancel" onclick="sendCommand('${id}', 'cancel')" ${!online ? 'disabled' : ''}>
-                            <span class="btn-icon">⏹️</span>Cancel
+                    ` : `
+                        <button class="btn btn-pause" onclick="sendCommand('${id}', 'pause')" ${!online || !isPrinting ? 'disabled' : ''}>
+                            <span class="btn-icon">⏸️</span>Pause
                         </button>
+                    `}
+                    
+                    <button class="btn btn-cancel" onclick="sendCommand('${id}', 'cancel')" ${!online ? 'disabled' : ''}>
+                        <span class="btn-icon">⏹️</span>Cancel
+                    </button>
+                    
+                    <button class="btn btn-check" onclick="sendCommand('${id}', 'check')" ${!online ? 'disabled' : ''}>
+                        <span class="btn-icon">✅</span>Check
+                    </button>
+                    
+                    <button class="btn btn-clean" onclick="sendCommand('${id}', 'clean')" ${!online ? 'disabled' : ''}>
+                        <span class="btn-icon">🧹</span>Clean
+                    </button>
+                    
+                    <button class="btn btn-load-ink" onclick="sendCommand('${id}', 'load_ink')" ${!online ? 'disabled' : ''}>
+                        <span class="btn-icon">🖨️</span>Load Ink
+                    </button>
+                </div>
+                
+                <!-- YÖN BUTONLARI -->
+                <div class="direction-section">
+                    <div class="direction-title">🎯 Hareket Kontrolü</div>
+                    <div class="direction-grid">
+                        <button class="btn-direction empty"></button>
+                        <button class="btn-direction" onclick="sendCommand('${id}', 'back')" ${!online ? 'disabled' : ''}>⬆️</button>
+                        <button class="btn-direction empty"></button>
+                        <button class="btn-direction" onclick="sendCommand('${id}', 'left')" ${!online ? 'disabled' : ''}>⬅️</button>
+                        <button class="btn-direction empty"></button>
+                        <button class="btn-direction" onclick="sendCommand('${id}', 'right')" ${!online ? 'disabled' : ''}>➡️</button>
+                        <button class="btn-direction empty"></button>
+                        <button class="btn-direction" onclick="sendCommand('${id}', 'ahead')" ${!online ? 'disabled' : ''}>⬇️</button>
+                        <button class="btn-direction empty"></button>
+                    </div>
+                </div>
+                
+                <!-- OTOMATİK TEMİZLİK AYARLARI -->
+                <div class="settings-section">
+                    <div class="settings-header" onclick="toggleSettings('${id}', event)">
+                        <h3>⚙️ Otomatik Temizlik Ayarları</h3>
+                        <span class="settings-toggle ${isSettingsOpen ? 'open' : ''}" id="settings-toggle-${id}">▼</span>
+                    </div>
+                    
+                    <div class="settings-content ${isSettingsOpen ? 'open' : ''}" id="settings-content-${id}">
+                        <!-- Süre Bazlı -->
+                        <div class="setting-row">
+                            <span class="setting-label">⏰ Süre Bazlı</span>
+                            <div class="setting-value">
+                                <div class="toggle-switch ${settings.auto_clean_time_enabled ? 'on' : ''}" 
+                                     id="time-enabled-${id}" 
+                                     onclick="toggleSetting('${id}', 'time-enabled', event)"></div>
+                            </div>
+                        </div>
+                        <div class="setting-row">
+                            <span class="setting-label">Her</span>
+                            <div class="time-inputs">
+                                <input type="number" class="number-input" id="time-hours-${id}" 
+                                       value="${settings.auto_clean_time_hours || 0}" min="0" max="23" 
+                                       onclick="event.stopPropagation()">s
+                                <input type="number" class="number-input" id="time-minutes-${id}" 
+                                       value="${settings.auto_clean_time_minutes || 5}" min="0" max="59" 
+                                       onclick="event.stopPropagation()">dk
+                                <input type="number" class="number-input" id="time-seconds-${id}" 
+                                       value="${settings.auto_clean_time_seconds || 0}" min="0" max="59" 
+                                       onclick="event.stopPropagation()">sn
+                            </div>
+                        </div>
                         
-                        <button class="btn btn-clean" onclick="sendCommand('${id}', 'clean')" ${!online ? 'disabled' : ''}>
-                            <span class="btn-icon">🧹</span>Clean Strong
+                        <!-- Kopya Bazlı -->
+                        <div class="setting-row">
+                            <span class="setting-label">📋 Kopya Bazlı</span>
+                            <div class="setting-value">
+                                <div class="toggle-switch ${settings.auto_clean_copy_enabled ? 'on' : ''}" 
+                                     id="copy-enabled-${id}" 
+                                     onclick="toggleSetting('${id}', 'copy-enabled', event)"></div>
+                            </div>
+                        </div>
+                        <div class="setting-row">
+                            <span class="setting-label">Her X kopyada</span>
+                            <div class="setting-value">
+                                <input type="number" class="number-input" id="copy-interval-${id}" 
+                                       value="${settings.auto_clean_copy_interval || 10}" min="1" max="100" 
+                                       onclick="event.stopPropagation()">
+                            </div>
+                        </div>
+                        
+                        <!-- Desen Bazlı -->
+                        <div class="setting-row">
+                            <span class="setting-label">🎨 Desen Bazlı</span>
+                            <div class="setting-value">
+                                <div class="toggle-switch ${settings.auto_clean_pattern_enabled ? 'on' : ''}" 
+                                     id="pattern-enabled-${id}" 
+                                     onclick="toggleSetting('${id}', 'pattern-enabled', event)"></div>
+                            </div>
+                        </div>
+                        <div class="setting-row">
+                            <span class="setting-label">Her X desende</span>
+                            <div class="setting-value">
+                                <input type="number" class="number-input" id="pattern-interval-${id}" 
+                                       value="${settings.auto_clean_pattern_interval || 3}" min="1" max="20" 
+                                       onclick="event.stopPropagation()">
+                            </div>
+                        </div>
+                        
+                        <button class="save-settings-btn" onclick="saveSettings('${id}', event)" ${!online ? 'disabled' : ''}>
+                            💾 Ayarları Kaydet
                         </button>
                     </div>
-                    
-                    <!-- YÖN BUTONLARI -->
-                    <div class="direction-section">
-                        <div class="direction-title">🎯 Hareket Kontrolü</div>
-                        <div class="direction-grid">
-                            <button class="btn-direction empty"></button>
-                            <button class="btn-direction" onclick="sendCommand('${id}', 'back')" ${!online ? 'disabled' : ''}>⬆️</button>
-                            <button class="btn-direction empty"></button>
-                            <button class="btn-direction" onclick="sendCommand('${id}', 'left')" ${!online ? 'disabled' : ''}>⬅️</button>
-                            <button class="btn-direction empty"></button>
-                            <button class="btn-direction" onclick="sendCommand('${id}', 'right')" ${!online ? 'disabled' : ''}>➡️</button>
-                            <button class="btn-direction empty"></button>
-                            <button class="btn-direction" onclick="sendCommand('${id}', 'ahead')" ${!online ? 'disabled' : ''}>⬇️</button>
-                            <button class="btn-direction empty"></button>
-                        </div>
+                </div>
+                
+                <!-- MAKİNE AYARLARI -->
+                <div class="machine-settings-section">
+                    <div class="machine-settings-header" onclick="toggleMachineSettings('${id}', event)">
+                        <h3>🔧 Makine Ayarları</h3>
+                        <span class="settings-toggle ${isMachineSettingsOpen ? 'open' : ''}" id="machine-settings-toggle-${id}">▼</span>
                     </div>
                     
-                    <!-- OTOMATİK TEMİZLİK AYARLARI -->
-                    <div class="settings-section">
-                        <div class="settings-header" onclick="toggleSettings('${id}', event)">
-                            <h3>⚙️ Otomatik Temizlik Ayarları</h3>
-                            <span class="settings-toggle ${isSettingsOpen ? 'open' : ''}" id="settings-toggle-${id}">▼</span>
-                        </div>
-                        
-                        <div class="settings-content ${isSettingsOpen ? 'open' : ''}" id="settings-content-${id}">
-                            <!-- Süre Bazlı -->
-                            <div class="setting-row">
-                                <span class="setting-label">⏰ Süre Bazlı</span>
-                                <div class="setting-value">
-                                    <div class="toggle-switch ${settings.auto_clean_time_enabled ? 'on' : ''}" 
-                                         id="time-enabled-${id}" 
-                                         onclick="toggleSetting('${id}', 'time-enabled', event)"></div>
-                                </div>
-                            </div>
-                            <div class="setting-row">
-                                <span class="setting-label">Her</span>
-                                <div class="time-inputs">
-                                    <input type="number" class="number-input" id="time-hours-${id}" 
-                                           value="${settings.auto_clean_time_hours || 0}" min="0" max="23" 
-                                           onclick="event.stopPropagation()">s
-                                    <input type="number" class="number-input" id="time-minutes-${id}" 
-                                           value="${settings.auto_clean_time_minutes || 5}" min="0" max="59" 
-                                           onclick="event.stopPropagation()">dk
-                                    <input type="number" class="number-input" id="time-seconds-${id}" 
-                                           value="${settings.auto_clean_time_seconds || 0}" min="0" max="59" 
-                                           onclick="event.stopPropagation()">sn
-                                </div>
-                            </div>
-                            
-                            <!-- Kopya Bazlı -->
-                            <div class="setting-row">
-                                <span class="setting-label">📋 Kopya Bazlı</span>
-                                <div class="setting-value">
-                                    <div class="toggle-switch ${settings.auto_clean_copy_enabled ? 'on' : ''}" 
-                                         id="copy-enabled-${id}" 
-                                         onclick="toggleSetting('${id}', 'copy-enabled', event)"></div>
-                                </div>
-                            </div>
-                            <div class="setting-row">
-                                <span class="setting-label">Her X kopyada</span>
-                                <div class="setting-value">
-                                    <input type="number" class="number-input" id="copy-interval-${id}" 
-                                           value="${settings.auto_clean_copy_interval || 10}" min="1" max="100" 
-                                           onclick="event.stopPropagation()">
-                                </div>
-                            </div>
-                            
-                            <!-- Desen Bazlı -->
-                            <div class="setting-row">
-                                <span class="setting-label">🎨 Desen Bazlı</span>
-                                <div class="setting-value">
-                                    <div class="toggle-switch ${settings.auto_clean_pattern_enabled ? 'on' : ''}" 
-                                         id="pattern-enabled-${id}" 
-                                         onclick="toggleSetting('${id}', 'pattern-enabled', event)"></div>
-                                </div>
-                            </div>
-                            <div class="setting-row">
-                                <span class="setting-label">Her X desende</span>
-                                <div class="setting-value">
-                                    <input type="number" class="number-input" id="pattern-interval-${id}" 
-                                           value="${settings.auto_clean_pattern_interval || 3}" min="1" max="20" 
-                                           onclick="event.stopPropagation()">
-                                </div>
-                            </div>
-                            
-                            <button class="save-settings-btn" onclick="saveSettings('${id}', event)" ${!online ? 'disabled' : ''}>
-                                💾 Ayarları Kaydet
+                    <div class="machine-settings-content ${isMachineSettingsOpen ? 'open' : ''}" id="machine-settings-content-${id}">
+                        <input type="text" 
+                               class="machine-name-input" 
+                               id="machine-name-${id}" 
+                               value="${displayName}" 
+                               placeholder="Makine ismi" 
+                               onclick="event.stopPropagation()">
+                        <div class="machine-btn-row">
+                            <button class="btn-save-name" onclick="saveMachineName('${id}', event)">
+                                💾 İsmi Kaydet
+                            </button>
+                            <button class="btn-delete-machine" onclick="openDeleteModal('${id}', event)">
+                                🗑️ Sil
                             </button>
                         </div>
                     </div>
-                    
-                    <!-- MAKİNE AYARLARI (İsim/Sil) -->
-                    <div class="machine-settings-section">
-                        <div class="machine-settings-header" onclick="toggleMachineSettings('${id}', event)">
-                            <h3>🔧 Makine Ayarları</h3>
-                            <span class="settings-toggle ${isMachineSettingsOpen ? 'open' : ''}" id="machine-settings-toggle-${id}">▼</span>
-                        </div>
-                        
-                        <div class="machine-settings-content ${isMachineSettingsOpen ? 'open' : ''}" id="machine-settings-content-${id}">
-                            <input type="text" 
-                                   class="machine-name-input" 
-                                   id="machine-name-${id}" 
-                                   value="${displayName}" 
-                                   placeholder="Makine ismi" 
-                                   onclick="event.stopPropagation()">
-                            <div class="machine-btn-row">
-                                <button class="btn-save-name" onclick="saveMachineName('${id}', event)">
-                                    💾 İsmi Kaydet
-                                </button>
-                                <button class="btn-delete-machine" onclick="openDeleteModal('${id}', event)">
-                                    🗑️ Sil
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="last-update">Son güncelleme: ${getTimeAgo(machine.last_seen)}</div>
+                </div>
+                
+                <div class="last-update">Son güncelleme: ${getTimeAgo(machine.last_seen)}</div>
+            </div>
+        `;
+    }
+    
+    // ================================
+    // UI UPDATE
+    // ================================
+    
+    function updateUI() {
+        if (updatePaused) {
+            updateHeader();
+            return;
+        }
+        
+        const content = document.getElementById('content');
+        const machineIds = Object.keys(machines);
+        
+        if (machineIds.length === 0) {
+            content.innerHTML = `
+                <div class="no-machines">
+                    <div class="icon">🖨️</div>
+                    <h2>Makine bulunamadı</h2>
+                    <p>Python programını çalıştırın.</p>
                 </div>
             `;
+            return;
         }
         
-        // ================================
-        // UI UPDATE
-        // ================================
+        // Gruplara ayır
+        const grandoMachines = [];
+        const trujetMachines = [];
+        const unknownMachines = [];
         
-        function updateUI() {
-            // ✅ Güncelleme duraklatıldıysa sadece header'ı güncelle
-            if (updatePaused) {
-                updateHeader();
-                return;
-            }
-            
-            const content = document.getElementById('content');
-            const machineIds = Object.keys(machines);
-            
-            if (machineIds.length === 0) {
-                content.innerHTML = `
-                    <div class="no-machines">
-                        <div class="icon">🖨️</div>
-                        <h2>Makine bulunamadı</h2>
-                        <p>Python programını çalıştırın.</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            machineIds.sort((a, b) => {
-                const aOnline = isOnline(machines[a]);
-                const bOnline = isOnline(machines[b]);
-                if (aOnline && !bOnline) return -1;
-                if (!aOnline && bOnline) return 1;
-                return a.localeCompare(b);
-            });
-            
-            let html = '<div class="machines-grid">';
-            for (const id of machineIds) {
+        // Sıralama fonksiyonu
+        const sortFn = (a, b) => {
+            const mA = machines[a];
+            const mB = machines[b];
+            const aOnline = isOnline(mA);
+            const bOnline = isOnline(mB);
+            if (aOnline && !bOnline) return -1;
+            if (!aOnline && bOnline) return 1;
+            return a.localeCompare(b);
+        };
+        
+        machineIds.sort(sortFn).forEach(id => {
+            const m = machines[id];
+            const type = getPrinterType(m);
+            if (type === 'grando') grandoMachines.push(id);
+            else if (type === 'trujet') trujetMachines.push(id);
+            else unknownMachines.push(id);
+        });
+        
+        let html = '';
+        
+        // Grando Grubu
+        if (grandoMachines.length > 0) {
+            html += `
+                <div class="printer-group">
+                    <div class="group-header grando">🔵 Grando Makineler</div>
+                    <div class="machines-grid">
+            `;
+            for (const id of grandoMachines) {
                 html += createMachineCard(id, machines[id]);
             }
-            html += '</div>';
-            content.innerHTML = html;
-            
-            updateHeader();
+            html += `</div></div>`;
         }
         
-        function updateHeader() {
-            const machineIds = Object.keys(machines);
-            const onlineCount = machineIds.filter(id => isOnline(machines[id])).length;
-            document.getElementById('connectionStatus').textContent = `${onlineCount}/${machineIds.length} makine çevrimiçi`;
-            document.getElementById('connectionStatus').className = onlineCount > 0 ? 'status online' : 'status';
+        // TruJet Grubu
+        if (trujetMachines.length > 0) {
+            html += `
+                <div class="printer-group">
+                    <div class="group-header trujet">🟠 TruJet Makineler</div>
+                    <div class="machines-grid">
+            `;
+            for (const id of trujetMachines) {
+                html += createMachineCard(id, machines[id]);
+            }
+            html += `</div></div>`;
         }
         
-        function startListening() {
-            database.ref('machines').on('value', (snapshot) => {
-                machines = snapshot.val() || {};
-                updateUI();
-            }, (error) => {
-                console.error('Firebase error:', error);
-                document.getElementById('connectionStatus').textContent = 'Bağlantı hatası!';
-            });
+        // Bilinmeyenler (varsa)
+        if (unknownMachines.length > 0) {
+            html += `
+                <div class="printer-group">
+                    <div class="group-header">⚪ Diğer Makineler</div>
+                    <div class="machines-grid">
+            `;
+            for (const id of unknownMachines) {
+                html += createMachineCard(id, machines[id]);
+            }
+            html += `</div></div>`;
         }
         
-        setInterval(() => { if (currentUser) updateUI(); }, 10000);
-    </script>
-</body>
-</html>
+        content.innerHTML = html;
+        
+        updateHeader();
+    }
+    
+    function updateHeader() {
+        const machineIds = Object.keys(machines);
+        const onlineCount = machineIds.filter(id => isOnline(machines[id])).length;
+        document.getElementById('connectionStatus').textContent = `${onlineCount}/${machineIds.length} makine çevrimiçi`;
+        document.getElementById('connectionStatus').className = onlineCount > 0 ? 'status online' : 'status';
+    }
+    
+    function startListening() {
+        database.ref('machines').on('value', (snapshot) => {
+            machines = snapshot.val() || {};
+            updateUI();
+        }, (error) => {
+            console.error('Firebase error:', error);
+            document.getElementById('connectionStatus').textContent = 'Bağlantı hatası!';
+        });
+    }
+    
+    setInterval(() => { if (currentUser) updateUI(); }, 10000);
+</script>
+</body> </html>
