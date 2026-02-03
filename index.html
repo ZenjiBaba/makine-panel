@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>🖨️ Makine Kontrol</title>
     
-    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
@@ -73,18 +72,8 @@
         
         .login-box button:disabled { opacity: 0.5; cursor: not-allowed; }
         
-        .login-error {
-            color: #ef4444;
-            margin-top: 15px;
-            font-size: 0.9em;
-            display: none;
-        }
-        
-        .login-loading {
-            color: #3b82f6;
-            margin-top: 15px;
-            display: none;
-        }
+        .login-error { color: #ef4444; margin-top: 15px; font-size: 0.9em; display: none; }
+        .login-loading { color: #3b82f6; margin-top: 15px; display: none; }
         
         .app-container { display: none; }
         
@@ -100,17 +89,11 @@
         .header h1 { font-size: 1.5em; margin-bottom: 5px; }
         .header .status { font-size: 0.9em; color: #888; }
         .header .status.online { color: #4ade80; }
-        
-        .user-info {
-            font-size: 0.8em;
-            color: #888;
-            margin-top: 5px;
-        }
+        .user-info { font-size: 0.8em; color: #888; margin-top: 5px; }
         
         .logout-btn {
             position: absolute;
-            top: 15px;
-            right: 15px;
+            top: 15px; right: 15px;
             padding: 8px 15px;
             border: none;
             border-radius: 8px;
@@ -122,7 +105,7 @@
         
         .machines-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
             gap: 15px;
         }
         
@@ -212,6 +195,143 @@
         .btn-clean { background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white; grid-column: span 3; }
         .btn:disabled { opacity: 0.4; cursor: not-allowed; }
         
+        /* ===== AYARLAR BÖLÜMÜ ===== */
+        .settings-section {
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+        
+        .settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            padding-bottom: 10px;
+        }
+        
+        .settings-header h3 {
+            font-size: 1em;
+            color: #a5b4fc;
+        }
+        
+        .settings-toggle {
+            font-size: 1.2em;
+            transition: transform 0.3s;
+        }
+        
+        .settings-toggle.open {
+            transform: rotate(180deg);
+        }
+        
+        .settings-content {
+            display: none;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .settings-content.open {
+            display: block;
+        }
+        
+        .setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        .setting-row:last-child {
+            border-bottom: none;
+        }
+        
+        .setting-label {
+            font-size: 0.85em;
+            color: #ccc;
+        }
+        
+        .setting-value {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 26px;
+            background: #444;
+            border-radius: 13px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .toggle-switch.on {
+            background: #4ade80;
+        }
+        
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            width: 22px;
+            height: 22px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: left 0.3s;
+        }
+        
+        .toggle-switch.on::after {
+            left: 26px;
+        }
+        
+        .number-input {
+            width: 60px;
+            padding: 5px 8px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 6px;
+            background: rgba(0,0,0,0.3);
+            color: white;
+            text-align: center;
+            font-size: 0.9em;
+        }
+        
+        .number-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+        
+        .time-inputs {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+            font-size: 0.8em;
+        }
+        
+        .time-inputs input {
+            width: 45px;
+        }
+        
+        .save-settings-btn {
+            width: 100%;
+            padding: 10px;
+            margin-top: 15px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .save-settings-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
         .last-update { text-align: center; font-size: 0.75em; color: #666; margin-top: 8px; }
         
         .no-machines { text-align: center; padding: 50px; color: #888; }
@@ -251,8 +371,7 @@
         
         .refresh-btn {
             position: fixed;
-            bottom: 20px;
-            right: 20px;
+            bottom: 20px; right: 20px;
             width: 56px; height: 56px;
             border-radius: 50%;
             background: linear-gradient(135deg, #3b82f6, #2563eb);
@@ -303,17 +422,14 @@
     <div class="toast" id="toast"></div>
 
     <script>
-        // ================================
-        // 🔥 FIREBASE CONFIG
-        // ================================
+        // Firebase Config - KENDİ API KEY'İNİ YAZ
         const firebaseConfig = {
-            apiKey: "AIzaSyByw1MrUACV0bphoLaw8BM7_RQj_x5_21o",  // ← Firebase Console'dan al
+            apiKey: "SENIN_API_KEYIN",
             authDomain: "makine-otomasyon-183ab.firebaseapp.com",
             databaseURL: "https://makine-otomasyon-183ab-default-rtdb.europe-west1.firebasedatabase.app",
             projectId: "makine-otomasyon-183ab"
         };
         
-        // Firebase başlat
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const database = firebase.database();
@@ -322,7 +438,7 @@
         let currentUser = null;
         
         // ================================
-        // 🔐 AUTH FONKSİYONLARI
+        // AUTH
         // ================================
         
         async function login() {
@@ -344,7 +460,6 @@
             
             try {
                 await auth.signInWithEmailAndPassword(email, password);
-                // Auth state listener halleder
             } catch (error) {
                 loginLoading.style.display = 'none';
                 loginBtn.disabled = false;
@@ -353,18 +468,14 @@
                 if (error.code === 'auth/user-not-found') errorMsg = '❌ Kullanıcı bulunamadı!';
                 else if (error.code === 'auth/wrong-password') errorMsg = '❌ Yanlış şifre!';
                 else if (error.code === 'auth/invalid-email') errorMsg = '❌ Geçersiz e-posta!';
-                else if (error.code === 'auth/too-many-requests') errorMsg = '❌ Çok fazla deneme, bekleyin!';
                 
                 loginError.textContent = errorMsg;
                 loginError.style.display = 'block';
             }
         }
         
-        function logout() {
-            auth.signOut();
-        }
+        function logout() { auth.signOut(); }
         
-        // Auth durumu değişince
         auth.onAuthStateChanged((user) => {
             if (user) {
                 currentUser = user;
@@ -381,16 +492,11 @@
             }
         });
         
-        // Enter tuşu
-        document.getElementById('passwordInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') login();
-        });
-        document.getElementById('emailInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') document.getElementById('passwordInput').focus();
-        });
+        document.getElementById('passwordInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') login(); });
+        document.getElementById('emailInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') document.getElementById('passwordInput').focus(); });
         
         // ================================
-        // 🔥 FIREBASE DATABASE
+        // HELPERS
         // ================================
         
         function showToast(message, type = '') {
@@ -442,6 +548,10 @@
             return 'online';
         }
         
+        // ================================
+        // COMMANDS
+        // ================================
+        
         function sendCommand(machineId, command) {
             if (!currentUser) {
                 showToast('❌ Oturum açın!', 'error');
@@ -460,11 +570,67 @@
             });
         }
         
+        // ================================
+        // SETTINGS
+        // ================================
+        
+        function toggleSettings(machineId) {
+            const content = document.getElementById(`settings-content-${machineId}`);
+            const toggle = document.getElementById(`settings-toggle-${machineId}`);
+            
+            if (content.classList.contains('open')) {
+                content.classList.remove('open');
+                toggle.classList.remove('open');
+            } else {
+                content.classList.add('open');
+                toggle.classList.add('open');
+            }
+        }
+        
+        function toggleSetting(machineId, setting) {
+            const el = document.getElementById(`${setting}-${machineId}`);
+            const isOn = el.classList.contains('on');
+            
+            if (isOn) {
+                el.classList.remove('on');
+            } else {
+                el.classList.add('on');
+            }
+        }
+        
+        function saveSettings(machineId) {
+            const settings = {
+                auto_clean_time_enabled: document.getElementById(`time-enabled-${machineId}`).classList.contains('on'),
+                auto_clean_time_hours: parseInt(document.getElementById(`time-hours-${machineId}`).value) || 0,
+                auto_clean_time_minutes: parseInt(document.getElementById(`time-minutes-${machineId}`).value) || 5,
+                auto_clean_time_seconds: parseInt(document.getElementById(`time-seconds-${machineId}`).value) || 0,
+                auto_clean_copy_enabled: document.getElementById(`copy-enabled-${machineId}`).classList.contains('on'),
+                auto_clean_copy_interval: parseInt(document.getElementById(`copy-interval-${machineId}`).value) || 10,
+                auto_clean_pattern_enabled: document.getElementById(`pattern-enabled-${machineId}`).classList.contains('on'),
+                auto_clean_pattern_interval: parseInt(document.getElementById(`pattern-interval-${machineId}`).value) || 3,
+                from_web: true,
+                last_updated: Date.now()
+            };
+            
+            database.ref(`machines/${machineId}/settings`).set(settings)
+                .then(() => {
+                    showToast('✅ Ayarlar kaydedildi!', 'success');
+                })
+                .catch((error) => {
+                    showToast(`❌ Hata: ${error.message}`, 'error');
+                });
+        }
+        
+        // ================================
+        // MACHINE CARD
+        // ================================
+        
         function createMachineCard(id, machine) {
             const online = isOnline(machine);
             const progress = machine.progress || 0;
             const isPaused = machine.is_paused;
             const isPrinting = machine.is_printing;
+            const settings = machine.settings || {};
             
             return `
                 <div class="machine-card ${getCardClass(machine)}">
@@ -527,10 +693,83 @@
                         </button>
                     </div>
                     
+                    <!-- AYARLAR BÖLÜMÜ -->
+                    <div class="settings-section">
+                        <div class="settings-header" onclick="toggleSettings('${id}')">
+                            <h3>⚙️ Otomatik Temizlik Ayarları</h3>
+                            <span class="settings-toggle" id="settings-toggle-${id}">▼</span>
+                        </div>
+                        
+                        <div class="settings-content" id="settings-content-${id}">
+                            <!-- Süre Bazlı -->
+                            <div class="setting-row">
+                                <span class="setting-label">⏰ Süre Bazlı</span>
+                                <div class="setting-value">
+                                    <div class="toggle-switch ${settings.auto_clean_time_enabled ? 'on' : ''}" 
+                                         id="time-enabled-${id}" 
+                                         onclick="toggleSetting('${id}', 'time-enabled')"></div>
+                                </div>
+                            </div>
+                            <div class="setting-row">
+                                <span class="setting-label">Her</span>
+                                <div class="time-inputs">
+                                    <input type="number" class="number-input" id="time-hours-${id}" 
+                                           value="${settings.auto_clean_time_hours || 0}" min="0" max="23">s
+                                    <input type="number" class="number-input" id="time-minutes-${id}" 
+                                           value="${settings.auto_clean_time_minutes || 5}" min="0" max="59">dk
+                                    <input type="number" class="number-input" id="time-seconds-${id}" 
+                                           value="${settings.auto_clean_time_seconds || 0}" min="0" max="59">sn
+                                </div>
+                            </div>
+                            
+                            <!-- Kopya Bazlı -->
+                            <div class="setting-row">
+                                <span class="setting-label">📋 Kopya Bazlı</span>
+                                <div class="setting-value">
+                                    <div class="toggle-switch ${settings.auto_clean_copy_enabled ? 'on' : ''}" 
+                                         id="copy-enabled-${id}" 
+                                         onclick="toggleSetting('${id}', 'copy-enabled')"></div>
+                                </div>
+                            </div>
+                            <div class="setting-row">
+                                <span class="setting-label">Her X kopyada</span>
+                                <div class="setting-value">
+                                    <input type="number" class="number-input" id="copy-interval-${id}" 
+                                           value="${settings.auto_clean_copy_interval || 10}" min="1" max="100">
+                                </div>
+                            </div>
+                            
+                            <!-- Desen Bazlı -->
+                            <div class="setting-row">
+                                <span class="setting-label">🎨 Desen Bazlı</span>
+                                <div class="setting-value">
+                                    <div class="toggle-switch ${settings.auto_clean_pattern_enabled ? 'on' : ''}" 
+                                         id="pattern-enabled-${id}" 
+                                         onclick="toggleSetting('${id}', 'pattern-enabled')"></div>
+                                </div>
+                            </div>
+                            <div class="setting-row">
+                                <span class="setting-label">Her X desende</span>
+                                <div class="setting-value">
+                                    <input type="number" class="number-input" id="pattern-interval-${id}" 
+                                           value="${settings.auto_clean_pattern_interval || 3}" min="1" max="20">
+                                </div>
+                            </div>
+                            
+                            <button class="save-settings-btn" onclick="saveSettings('${id}')" ${!online ? 'disabled' : ''}>
+                                💾 Ayarları Kaydet
+                            </button>
+                        </div>
+                    </div>
+                    
                     <div class="last-update">Son güncelleme: ${getTimeAgo(machine.last_seen)}</div>
                 </div>
             `;
         }
+        
+        // ================================
+        // UI UPDATE
+        // ================================
         
         function updateUI() {
             const content = document.getElementById('content');
@@ -577,10 +816,7 @@
             });
         }
         
-        // Her 10 saniyede güncelle
-        setInterval(() => {
-            if (currentUser) updateUI();
-        }, 10000);
+        setInterval(() => { if (currentUser) updateUI(); }, 10000);
     </script>
 </body>
 </html>
