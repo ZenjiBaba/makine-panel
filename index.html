@@ -40,37 +40,63 @@
         /* KARTLAR */
         .machines-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; }
         .machine-card { border-radius: 15px; padding: 20px; transition: transform 0.2s; position: relative; overflow: hidden; }
+        
         .machine-card.grando { background: #172554; border: 1px solid #1e40af; }
         .machine-card.trujet { background: #451a03; border: 1px solid #92400e; }
+        
         .machine-card.offline { opacity: 0.7; filter: grayscale(0.8); }
         .machine-card.printing { box-shadow: 0 0 15px rgba(255,255,255,0.1); }
 
-        .machine-header { display: flex; justify-content: space-between; margin-bottom: 15px; }
-        .machine-title { display: flex; align-items: center; gap: 10px; }
-        .printer-badge { padding: 3px 8px; border-radius: 8px; font-size: 0.65em; font-weight: bold; text-transform: uppercase; }
+        /* KART BAŞLIK */
+        .machine-header { display: flex; justify-content: space-between; margin-bottom: 15px; align-items: flex-start; }
+        .machine-title { display: flex; flex-direction: column; gap: 2px; width: 60%; }
+        
+        .printer-badge { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 0.65em; font-weight: bold; text-transform: uppercase; width: fit-content; }
         .printer-badge.grando { background: rgba(59, 130, 246, 0.2); color: #93c5fd; }
         .printer-badge.trujet { background: rgba(245, 158, 11, 0.2); color: #fcd34d; }
-        .machine-name-input { background: transparent; border: 1px solid transparent; color: inherit; font-size: 1.2em; font-weight: bold; width: 100%; }
+        
+        .machine-name-input { background: transparent; border: 1px solid transparent; color: inherit; font-size: 1.2em; font-weight: bold; width: 100%; padding: 0; }
         .machine-name-input:focus { border-bottom: 1px solid white; outline: none; }
-        .status-badge { padding: 4px 12px; border-radius: 20px; font-size: 0.8em; font-weight: bold; background: rgba(0,0,0,0.3); }
+
+        .status-badge { 
+            padding: 6px 12px; border-radius: 20px; font-size: 0.85em; font-weight: bold; 
+            display: flex; align-items: center; gap: 6px; white-space: nowrap;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        .status-badge.printing { background: #22c55e; color: #052e16; }
+        .status-badge.paused { background: #f59e0b; color: #451a03; }
+        .status-badge.idle { background: #64748b; color: white; }
+        .status-badge.offline { background: #ef4444; color: white; }
 
         .job-info { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 10px; margin-bottom: 15px; }
+        
         .progress-bar { height: 24px; background: rgba(255,255,255,0.1); border-radius: 12px; overflow: hidden; margin: 10px 0; position: relative; }
         .progress-fill { height: 100%; transition: width 0.5s ease; }
         .progress-fill.grando { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
         .progress-fill.trujet { background: linear-gradient(90deg, #d97706, #f59e0b); }
-        .progress-text { position: absolute; width: 100%; top:0; left:0; text-align: center; line-height: 24px; font-size: 0.8em; font-weight: bold; text-shadow: 0 0 2px black; z-index: 2; }
+        .progress-text { position: absolute; width: 100%; top:0; left:0; text-align: center; line-height: 24px; font-size: 0.8em; font-weight: bold; text-shadow: 0 0 3px rgba(0,0,0,0.8); z-index: 2; }
 
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.9em; }
-        .stat-item { display: flex; justify-content: space-between; }
-        .stat-label { opacity: 0.6; }
+        /* İSTATİSTİKLER */
+        .stats-container { display: flex; flex-direction: column; gap: 8px; font-size: 0.9em; margin-top: 10px; }
+        .stat-row { display: flex; justify-content: space-between; align-items: center; padding-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .stat-row:last-child { border-bottom: none; }
+        .stat-group { display: flex; flex-direction: column; }
+        .stat-group.right { text-align: right; }
+        .stat-label { font-size: 0.75em; opacity: 0.7; text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-value { font-weight: bold; font-size: 1.05em; }
+        .stat-value.highlight { color: #fbbf24; }
+        .stat-value.clean-info { color: #a78bfa; font-size: 0.95em; } /* Mor renk */
 
         /* BUTONLAR */
         .control-wrapper { display: flex; flex-direction: column; gap: 8px; margin-top: 15px; }
         .btn-row-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
         .btn-row-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
         
-        .btn { border: none; padding: 10px 5px; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.8em; gap: 3px; min-height: 50px; }
+        .btn { 
+            border: none; padding: 10px 5px; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            font-size: 0.8em; gap: 3px; min-height: 50px; 
+        }
         .btn-row-4 .btn { font-size: 0.7em; padding: 8px 2px; }
         .btn:disabled { opacity: 0.2; cursor: not-allowed; filter: grayscale(1); }
         .btn:active { transform: scale(0.96); }
@@ -83,25 +109,39 @@
         .btn-auto  { background: linear-gradient(135deg, #6366f1, #4f46e5); }
         .btn-load  { background: #06b6d4; }
 
-        /* YÖN */
         .move-panel { background: rgba(0,0,0,0.2); margin-top: 15px; padding: 10px; border-radius: 10px; display: flex; justify-content: center; }
         .move-grid { display: grid; grid-template-columns: repeat(3, 50px); grid-template-rows: repeat(2, 40px); gap: 5px; }
         .btn-move { background: #334155; border: none; border-radius: 8px; color: white; font-size: 1.2em; cursor: pointer; }
+        .btn-move:hover { background: #475569; }
+        .btn-move:active { background: #3b82f6; }
         .btn-move:disabled { opacity: 0.2; cursor: not-allowed; }
 
-        /* KART AYARLARI */
+        /* KART İÇİ AYARLAR - MODERN UI */
         .settings-section { background: rgba(0,0,0,0.3); border-radius: 12px; padding: 15px; margin-top: 15px; }
         .settings-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
         .settings-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
-        .settings-content.open { max-height: 600px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.1); }
-        .save-btn { width: 100%; padding: 10px; background: #22c55e; border: none; border-radius: 8px; color: white; font-weight: bold; margin-top: 10px; cursor: pointer; }
+        .settings-content.open { max-height: 800px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); }
+        
         .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .toggle-switch { position: relative; width: 40px; height: 22px; background: #444; border-radius: 11px; cursor: pointer; transition: 0.3s; }
-        .toggle-switch.on { background: #4ade80; }
+        .setting-row:last-child { border-bottom: none; }
+        
+        .setting-label { font-size: 0.9em; color: #cbd5e1; }
+        .setting-controls { display: flex; align-items: center; gap: 5px; }
+        
+        /* Modern Input */
+        .setting-input {
+            width: 50px; padding: 6px; background: #334155; border: 1px solid #475569;
+            color: white; border-radius: 5px; text-align: center; font-weight: bold;
+        }
+        .setting-input:focus { border-color: #3b82f6; outline: none; }
+
+        .toggle-switch { position: relative; width: 40px; height: 22px; background: #475569; border-radius: 11px; cursor: pointer; transition: 0.3s; }
+        .toggle-switch.on { background: #22c55e; }
         .toggle-switch::after { content: ''; position: absolute; width: 18px; height: 18px; background: white; border-radius: 50%; top: 2px; left: 2px; transition: 0.3s; }
         .toggle-switch.on::after { left: 20px; }
-        .number-input { width: 50px; padding: 4px; border-radius: 5px; border: 1px solid #555; background: #333; color: white; text-align: center; }
 
+        .save-btn { width: 100%; padding: 12px; background: #22c55e; border: none; border-radius: 8px; color: white; font-weight: bold; margin-top: 15px; cursor: pointer; font-size: 0.9em; }
+        
         /* MODALLAR */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; }
         .modal.show { display: flex; }
@@ -112,14 +152,12 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; }
 
-        /* YÖNET LİSTESİ */
         .gs-item { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); }
         .gs-id { font-size: 0.8em; color: #94a3b8; width: 60px; }
         .gs-input-name { flex: 1; padding: 8px; background: #334155; border: 1px solid #475569; color: white; border-radius: 5px; }
         .gs-input-order { width: 50px; padding: 8px; background: #334155; border: 1px solid #475569; color: white; border-radius: 5px; text-align: center; }
         .btn-icon-delete { background: #ef4444; color: white; border: none; border-radius: 5px; width: 35px; height: 35px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.2em; }
 
-        /* BİLDİRİM */
         .notif-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         .notif-input { width: 60px; padding: 5px; background: #334155; border: 1px solid #475569; color: white; border-radius: 5px; text-align: center; }
         .time-range { display: flex; align-items: center; gap: 5px; }
@@ -130,7 +168,6 @@
         .btn-delete { background: #ef4444; color: white; }
         .btn-close { background: #475569; color: white; }
         
-        /* Silme Modalı Üstte Olsun */
         #deleteModal { z-index: 2000; }
     </style>
 </head>
@@ -160,35 +197,19 @@
                 <div class="modal-tab active" onclick="switchTab('machines')">Makineler & Sıralama</div>
                 <div class="modal-tab" onclick="switchTab('notifications')">Bildirimler 🔔</div>
             </div>
-
-            <!-- MAKİNE LİSTESİ -->
-            <div id="tab-machines" class="tab-content active">
-                <p style="font-size:0.8em; color:#94a3b8; margin-bottom:10px;">İsim değiştir, sırala (1,2..) veya sil.</p>
-                <div id="gsList"></div>
-            </div>
-
-            <!-- BİLDİRİM AYARLARI -->
+            <div id="tab-machines" class="tab-content active"><div id="gsList"></div></div>
             <div id="tab-notifications" class="tab-content">
                 <div style="background:rgba(255,255,255,0.05); padding:15px; border-radius:10px; margin-bottom:15px;">
-                    <div class="notif-row">
-                        <span>🔔 Bildirimleri Aç</span>
-                        <div class="toggle-switch" id="notif-enabled" onclick="this.classList.toggle('on')"></div>
-                    </div>
-                    <div class="notif-row">
-                        <span>⏰ Saat Aralığı</span>
-                        <div class="time-range">
-                            <input type="time" class="notif-input" id="notif-start" value="08:30" style="width:auto;"> - 
-                            <input type="time" class="notif-input" id="notif-end" value="18:30" style="width:auto;">
-                        </div>
-                    </div>
+                    <div class="notif-row"><span>🔔 Bildirimleri Aç</span><div class="toggle-switch" id="notif-enabled" onclick="this.classList.toggle('on')"></div></div>
+                    <div class="notif-row"><span>⏰ Saat Aralığı</span><div class="time-range"><input type="time" class="notif-input" id="notif-start" value="08:30" style="width:auto;"> - <input type="time" class="notif-input" id="notif-end" value="18:30" style="width:auto;"></div></div>
                 </div>
                 <div class="notif-row"><span>📄 Kalan Kopya Azalınca</span><div><input type="number" class="notif-input" id="notif-copy" placeholder="10"></div></div>
                 <div class="notif-row"><span>📊 Kalan Yüzde Azalınca (%)</span><div><input type="number" class="notif-input" id="notif-percent" placeholder="5"></div></div>
                 <div class="notif-row"><span>⏳ Kalan Süre Azalınca (dk)</span><div><input type="number" class="notif-input" id="notif-time" placeholder="15"></div></div>
                 <div class="notif-row"><span>📏 Kalan Metre Azalınca (m)</span><div><input type="number" class="notif-input" id="notif-meter" placeholder="20"></div></div>
                 <button class="btn-confirm" style="width:100%; margin-top:10px;" onclick="requestPermission()">🔔 İzin İste & Test Gönder</button>
+				<button class="btn-test" style="width:100%; margin-top:5px; background:#6366f1;" onclick="testNotification()">🔔 Test Bildirimi Gönder</button>
             </div>
-
             <div class="modal-btns"><button class="btn-close" onclick="closeGlobalSettings()">İptal</button><button class="btn-confirm" onclick="saveGlobalSettings()">Kaydet & Çık</button></div>
         </div>
     </div>
@@ -203,28 +224,76 @@
     </div>
 
     <script>
-        const firebaseConfig = { apiKey: "AIzaSyByw1MrUACV0bphoLaw8BM7_RQj_x5_21o", authDomain: "makine-otomasyon-183ab.firebaseapp.com", databaseURL: "https://makine-otomasyon-183ab-default-rtdb.europe-west1.firebasedatabase.app", projectId: "makine-otomasyon-183ab" };
+        // FIREBASE AYARLARI
+        const firebaseConfig = {
+            apiKey: "AIzaSyByw1MrUACV0bphoLaw8BM7_RQj_x5_21o",
+            authDomain: "makine-otomasyon-183ab.firebaseapp.com",
+            databaseURL: "https://makine-otomasyon-183ab-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "makine-otomasyon-183ab"
+        };
+        
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.database();
-        let machines = {}, currentUser = null, deleteId = null, openSettings = {}, updatePaused = false, editingId = null, notifiedState = {};
+        
+        let machines = {};
+        let currentUser = null;
+        let deleteId = null;
+        let openSettings = {};
+        let updatePaused = false;
+        let editingId = null;
+        let notifiedState = {}; // Bildirim atıldı mı kontrolü
 
-        function login() { auth.signInWithEmailAndPassword(document.getElementById('email').value, document.getElementById('password').value).catch(err => { document.getElementById('loginError').innerText = err.message; document.getElementById('loginError').style.display = 'block'; }); }
+        // --- AUTH ---
+        function login() {
+            const e = document.getElementById('email').value;
+            const p = document.getElementById('password').value;
+            auth.signInWithEmailAndPassword(e, p).catch(err => {
+                document.getElementById('loginError').innerText = err.message;
+                document.getElementById('loginError').style.display = 'block';
+            });
+        }
         function logout() { auth.signOut(); }
-        auth.onAuthStateChanged(u => { if(u){ currentUser=u; document.getElementById('loginScreen').style.display='none'; document.getElementById('appContainer').style.display='block'; loadNotifSettings(); startListener(); } else { document.getElementById('loginScreen').style.display='flex'; document.getElementById('appContainer').style.display='none'; } });
 
-        function startListener() { db.ref('machines').on('value', snap => { if(!editingId && !updatePaused) { machines = snap.val() || {}; render(); checkNotifications(); } }); }
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                currentUser = user;
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('appContainer').style.display = 'block';
+                loadNotifSettings(); // Ayarları yükle
+                startListener();
+            } else {
+                document.getElementById('loginScreen').style.display = 'flex';
+                document.getElementById('appContainer').style.display = 'none';
+            }
+        });
 
+        // --- DATA ---
+        function startListener() {
+            db.ref('machines').on('value', snap => {
+                if(!editingId && !updatePaused) {
+                    machines = snap.val() || {};
+                    render();
+                    checkNotifications(); // Veri her değiştiğinde kontrol et
+                }
+            });
+        }
+
+        // --- RENDER ---
         function render() {
-            const content = document.getElementById('content'); content.innerHTML = '';
+            const content = document.getElementById('content');
+            content.innerHTML = '';
+            
             const ids = Object.keys(machines);
             document.getElementById('statusText').innerText = `${ids.filter(id => isOnline(machines[id])).length} / ${ids.length} makine çevrimiçi`;
+            
             const groups = { grando: [], trujet: [], unknown: [] };
             
             ids.sort((a,b) => {
                 const mA = machines[a], mB = machines[b];
                 const onA = isOnline(mA), onB = isOnline(mB);
-                if(onA && !onB) return -1; if(!onA && onB) return 1;
+                if(onA && !onB) return -1;
+                if(!onA && onB) return 1;
                 const oA = mA.sort_order || 999, oB = mB.sort_order || 999;
                 if(oA !== oB) return oA - oB;
                 return a.localeCompare(b);
@@ -233,7 +302,9 @@
                 let type = m.printer_type || 'unknown';
                 if(type === 'unknown' && (m.display_name||'').toLowerCase().includes('trujet')) type = 'trujet';
                 if(type === 'unknown') type = 'grando';
-                if(groups[type]) groups[type].push(id); else groups['unknown'].push(id);
+                
+                if (groups[type]) groups[type].push(id);
+                else groups['unknown'].push(id);
             });
 
             if(groups.grando.length) content.innerHTML += `<div class="printer-group"><div class="group-header grando">🔵 Grando (${groups.grando.length})</div><div class="machines-grid">${groups.grando.map(id => cardHTML(id, machines[id], 'grando')).join('')}</div></div>`;
@@ -243,24 +314,35 @@
 
         function cardHTML(id, m, type) {
             const online = isOnline(m);
-            const statusClass = online ? (m.is_printing ? 'printing' : 'online') : 'offline';
-            const statusText = online ? (m.is_printing ? 'Basılıyor' : (m.is_paused ? 'Duraklatıldı' : 'Boşta')) : 'Çevrimdışı';
+            let statusText = 'Çevrimdışı', statusClass = 'offline', statusIcon = '🔌';
+            if(online) {
+                if(m.is_printing) { statusText='Basılıyor'; statusClass='printing'; statusIcon='▶️'; }
+                else if(m.is_paused) { statusText='Duraklatıldı'; statusClass='paused'; statusIcon='⏸️'; }
+                else { statusText='Boşta'; statusClass='idle'; statusIcon='💤'; }
+            }
+
             const progress = m.progress || 0;
             const name = m.display_name || id;
             const isOpen = openSettings[id] || false;
+            const s = m.settings || {};
             
-            const remainingTime = m.remaining_time || '--:--:--';
-            const remainingMeter = m.remaining_length_m ? `(+${m.remaining_length_m.toFixed(1)}m)` : '';
+            const remainingTime = m.remaining_time || '00:00:00';
+            // Kalan metre düzeltmesi
+            const remainingMeter = m.remaining_length_m ? m.remaining_length_m.toFixed(1) : '0.0';
+			
+            // AutoClean Metni
+            let acText = 'Kapalı';
+            if (s.auto_clean_time_enabled) acText = `⏱️ Her ${s.auto_clean_time_minutes}dk`;
+            else if (s.auto_clean_copy_enabled) acText = `📄 Her ${s.auto_clean_copy_interval} Baskıda`;
+            else if (s.auto_clean_pattern_enabled) acText = `🎨 Her ${s.auto_clean_pattern_interval} Desende`;
 
+            // Kilitler
             let dG = !online ? 'disabled' : '';
             let dP=dG, dPR=dG, dC=dG, dCh=dG, dCl=dG, dA=dG, dI=dG, dM=dG;
 
             if(online) {
-                if(m.is_printing) { 
-                    dP='disabled'; dCh='disabled'; dCl='disabled'; dI='disabled'; dM='disabled';
-                } else if(m.is_paused) {
-                    dP='disabled'; dCh='disabled'; dI='disabled'; dM='disabled';
-                }
+                if(m.is_printing) { dP='disabled'; dCh='disabled'; dCl='disabled'; dI='disabled'; dM='disabled'; }
+                else if(m.is_paused) { dP='disabled'; dCh='disabled'; dI='disabled'; dM='disabled'; }
             }
 
             const pBtn = m.is_paused 
@@ -270,25 +352,57 @@
             return `
             <div class="machine-card ${type} ${statusClass}">
                 <div class="machine-header">
-                    <div>
-                        <div class="machine-title"><span class="printer-badge ${type}">${type}</span><input type="text" class="machine-name-input" value="${name}" onfocus="editingId='${id}'" onblur="saveName('${id}',this.value)"></div>
-                        <div class="machine-id">${id}</div>
+                    <div class="machine-title">
+                        <span class="printer-badge ${type}">${type}</span>
+                        <input type="text" class="machine-name-input" value="${name}" onfocus="editingId='${id}'" onblur="saveName('${id}',this.value)">
                     </div>
-                    <span class="status-badge">${statusText}</span>
+                    <div class="status-badge ${statusClass}">${statusIcon} ${statusText}</div>
                 </div>
+
                 <div class="job-info">
-                    <div style="margin-bottom:5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">📄 ${m.job_name||'-'}</div>
+                    <div style="margin-bottom:8px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-weight:500;">
+                        📄 ${m.job_name||'-'}
+                    </div>
                     <div class="progress-bar">
                         <div class="progress-fill ${type}" style="width:${Math.max(progress,5)}%"></div>
                         <div class="progress-text">${progress.toFixed(1)}%</div>
                     </div>
-                    <div class="stats-grid">
-                        <div class="stat-item"><span class="stat-label">Kopya:</span> <span>${m.current_copy||0}/${m.total_copies||0}</span></div>
-                        <div class="stat-item"><span class="stat-label">Süre:</span> <span>${m.elapsed_time||'--:--'}</span></div>
-                        <div class="stat-item"><span class="stat-label">Kalan:</span> <span>${remainingTime}</span></div>
-                        <div class="stat-item"><span class="stat-label">Metre:</span> <span>${(m.total_length_m||0).toFixed(1)}m ${remainingMeter}</span></div>
+                    
+                    <div class="stats-container">
+                        <!-- 1. Satır: Kopya | AutoClean -->
+                        <div class="stat-row">
+                            <div class="stat-group">
+                                <span class="stat-label">Kopya Durumu</span>
+                                <span class="stat-value">${m.current_copy||0} / ${m.total_copies||0}</span>
+                            </div>
+                            <div class="stat-group right">
+                                <span class="stat-label">Oto. Temizlik</span>
+                                <span class="stat-value clean-info">${acText}</span>
+                            </div>
+                        </div>
+                        <div class="stat-row">
+                            <div class="stat-group">
+                                <span class="stat-label">Geçen Süre</span>
+                                <span class="stat-value">${m.elapsed_time||'00:00:00'}</span>
+                            </div>
+                            <div class="stat-group right">
+                                <span class="stat-label">Kalan Süre</span>
+                                <span class="stat-value highlight">${remainingTime}</span>
+                            </div>
+                        </div>
+                        <div class="stat-row">
+                            <div class="stat-group">
+                                <span class="stat-label">Basılan Metre</span>
+                                <span class="stat-value">${(m.total_length_m||0).toFixed(1)} m</span>
+                            </div>
+                            <div class="stat-group right">
+                                <span class="stat-label">Tahmini Kalan</span>
+                                <span class="stat-value highlight">${remainingMeter} m</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
+
                 <div class="control-wrapper">
                     <div class="btn-row-3">
                         <button class="btn btn-print" onclick="cmd('${id}','print')" ${dP}><span class="btn-icon">▶️</span>Print</button>
@@ -310,69 +424,173 @@
                     </div>
                 </div>
                 <div class="settings-section">
-                    <div class="settings-header" onclick="toggleSettings('${id}')"><span>⚙️ Ayarlar</span><span>${isOpen?'▲':'▼'}</span></div>
+                    <div class="settings-header" onclick="toggleSettings('${id}')"><span>⚙️ Otomatik Temizlik Ayarları</span><span>${isOpen?'▲':'▼'}</span></div>
                     <div class="settings-content ${isOpen?'open':''}" id="settings-content-${id}">
-                        <div style="margin-top:10px;">
-                            <span class="setting-label">⏰ Süre: </span><input class="number-input" id="time-h-${id}" value="${m.settings?.auto_clean_time_hours||0}">:<input class="number-input" id="time-m-${id}" value="${m.settings?.auto_clean_time_minutes||5}">
-                            <button class="save-btn" onclick="saveSettings('${id}')">Kaydet</button>
+                        <div class="setting-row">
+                            <span class="setting-label">⏰ Süre Bazlı</span>
+                            <div class="setting-controls"><div class="toggle-switch ${s.auto_clean_time_enabled ? 'on' : ''}" id="time-en-${id}" onclick="this.classList.toggle('on')"></div></div>
                         </div>
+                        <div class="setting-row">
+                            <span class="setting-label">Süre (Sa:Dk:Sn)</span>
+                            <div class="setting-controls">
+                                <input type="number" class="setting-input" id="time-h-${id}" value="${s.auto_clean_time_hours||0}">:
+                                <input type="number" class="setting-input" id="time-m-${id}" value="${s.auto_clean_time_minutes||5}">:
+                                <input type="number" class="setting-input" id="time-s-${id}" value="${s.auto_clean_time_seconds||0}">
+                            </div>
+                        </div>
+                        <div class="setting-row">
+                            <span class="setting-label">📄 Kopya Bazlı</span>
+                            <div class="setting-controls"><div class="toggle-switch ${s.auto_clean_copy_enabled ? 'on' : ''}" id="copy-en-${id}" onclick="this.classList.toggle('on')"></div></div>
+                        </div>
+                        <div class="setting-row">
+                            <span class="setting-label">Her X Kopyada</span>
+                            <div class="setting-controls"><input type="number" class="setting-input" id="copy-int-${id}" value="${s.auto_clean_copy_interval||10}" style="width:70px;"></div>
+                        </div>
+                        <div class="setting-row">
+                            <span class="setting-label">🎨 Desen Bazlı</span>
+                            <div class="setting-controls"><div class="toggle-switch ${s.auto_clean_pattern_enabled ? 'on' : ''}" id="patt-en-${id}" onclick="this.classList.toggle('on')"></div></div>
+                        </div>
+                        <div class="setting-row">
+                            <span class="setting-label">Her X Desende</span>
+                            <div class="setting-controls"><input type="number" class="setting-input" id="patt-int-${id}" value="${s.auto_clean_pattern_interval||3}" style="width:70px;"></div>
+                        </div>
+                        <button class="save-btn" onclick="saveSettings('${id}')">Ayarları Kaydet</button>
                     </div>
                 </div>
             </div>`;
         }
 
+        // --- ACTIONS ---
         function isOnline(m){ return m.last_seen && (Date.now()-m.last_seen < 40000); }
         function cmd(id,c){ db.ref(`machines/${id}/pending_command`).set({command:c, id:Date.now().toString()}); }
         function saveName(id,v){ if(v.trim()){ db.ref(`machines/${id}`).update({display_name:v}); } editingId=null; render(); }
         function toggleSettings(id){ updatePaused=true; document.getElementById('pauseIndicator').classList.add('show'); openSettings[id]=!openSettings[id]; if(!openSettings[id] && !Object.values(openSettings).includes(true)){updatePaused=false; document.getElementById('pauseIndicator').classList.remove('show');} render(); }
-        
-        function saveSettings(id) {
-            const s = { auto_clean_time_hours: parseInt(document.getElementById(`time-h-${id}`).value)||0, auto_clean_time_minutes: parseInt(document.getElementById(`time-m-${id}`).value)||5, from_web: true };
-            db.ref(`machines/${id}/settings`).update(s); toggleSettings(id);
-        }
+        function saveSettings(id) { const s = { auto_clean_time_enabled: document.getElementById(`time-en-${id}`).classList.contains('on'), auto_clean_time_hours: parseInt(document.getElementById(`time-h-${id}`).value)||0, auto_clean_time_minutes: parseInt(document.getElementById(`time-m-${id}`).value)||0, auto_clean_time_seconds: parseInt(document.getElementById(`time-s-${id}`).value)||0, auto_clean_copy_enabled: document.getElementById(`copy-en-${id}`).classList.contains('on'), auto_clean_copy_interval: parseInt(document.getElementById(`copy-int-${id}`).value)||0, auto_clean_pattern_enabled: document.getElementById(`patt-en-${id}`).classList.contains('on'), auto_clean_pattern_interval: parseInt(document.getElementById(`patt-int-${id}`).value)||0, from_web: true }; db.ref(`machines/${id}/settings`).update(s); toggleSettings(id); }
 
         // --- GLOBAL & BİLDİRİM ---
-        function openGlobalSettings(){ updatePaused=true; document.getElementById('pauseIndicator').classList.add('show'); const l=document.getElementById('gsList'); l.innerHTML=''; Object.keys(machines).forEach(id=>{ l.innerHTML+=`<div class="gs-item" data-id="${id}"><span style="font-size:0.8em;width:60px;">${id.substring(0,6)}</span><input class="gs-input-name" value="${machines[id].display_name||id}"><input class="gs-input-order" type="number" value="${machines[id].sort_order||999}"><button class="btn-icon-delete" onclick="askDelete('${id}')">🗑️</button></div>`; }); document.getElementById('globalSettingsModal').classList.add('show'); }
+        function openGlobalSettings(){ updatePaused=true; document.getElementById('pauseIndicator').classList.add('show'); const l=document.getElementById('gsList'); l.innerHTML=''; Object.keys(machines).forEach(id=>{ l.innerHTML+=`<div class="gs-item" data-id="${id}"><span class="gs-id">${id.substring(0,6)}</span><input class="gs-input-name" value="${machines[id].display_name||id}"><input class="gs-input-order" type="number" value="${machines[id].sort_order||999}"><button class="btn-icon-delete" onclick="askDelete('${id}')">🗑️</button></div>`; }); document.getElementById('globalSettingsModal').classList.add('show'); }
         function closeGlobalSettings(){ document.getElementById('globalSettingsModal').classList.remove('show'); updatePaused=false; document.getElementById('pauseIndicator').classList.remove('show'); render(); }
         function switchTab(tab){ document.querySelectorAll('.tab-content').forEach(d=>d.classList.remove('active')); document.querySelectorAll('.modal-tab').forEach(t=>t.classList.remove('active')); document.getElementById(`tab-${tab}`).classList.add('active'); event.target.classList.add('active'); }
+        function saveGlobalSettings(){ const u={}; document.querySelectorAll('.gs-item').forEach(i=>{ const id=i.getAttribute('data-id'); u[`machines/${id}/display_name`]=i.querySelector('.gs-input-name').value; u[`machines/${id}/sort_order`]=parseInt(i.querySelector('.gs-input-order').value)||999; }); const notifData = { enabled: document.getElementById('notif-enabled').classList.contains('on'), start: document.getElementById('notif-start').value, end: document.getElementById('notif-end').value, copy: parseInt(document.getElementById('notif-copy').value)||0, percent: parseInt(document.getElementById('notif-percent').value)||0, time: parseInt(document.getElementById('notif-time').value)||0, meter: parseInt(document.getElementById('notif-meter').value)||0 }; localStorage.setItem('notif_settings', JSON.stringify(notifData)); db.ref().update(u); closeGlobalSettings(); }
+        function loadNotifSettings() { const s = JSON.parse(localStorage.getItem('notif_settings') || '{}'); if(s.enabled) document.getElementById('notif-enabled').classList.add('on'); if(s.start) document.getElementById('notif-start').value = s.start; if(s.end) document.getElementById('notif-end').value = s.end; if(s.copy) document.getElementById('notif-copy').value = s.copy; if(s.percent) document.getElementById('notif-percent').value = s.percent; if(s.time) document.getElementById('notif-time').value = s.time; if(s.meter) document.getElementById('notif-meter').value = s.meter; }
+        
+        // --- BİLDİRİM TEST VE KONTROL ---
+        function requestPermission() {
+            if (!("Notification" in window)) {
+                alert("Bu tarayıcı bildirimleri desteklemiyor.");
+                return;
+            }
 
-        function saveGlobalSettings(){
-            const u={}; document.querySelectorAll('.gs-item').forEach(i=>{ const id=i.getAttribute('data-id'); u[`machines/${id}/display_name`]=i.querySelector('.gs-input-name').value; u[`machines/${id}/sort_order`]=parseInt(i.querySelector('.gs-input-order').value)||999; });
-            const notifData = { enabled: document.getElementById('notif-enabled').classList.contains('on'), start: document.getElementById('notif-start').value, end: document.getElementById('notif-end').value, copy: parseInt(document.getElementById('notif-copy').value)||0, percent: parseInt(document.getElementById('notif-percent').value)||0, time: parseInt(document.getElementById('notif-time').value)||0, meter: parseInt(document.getElementById('notif-meter').value)||0 };
-            localStorage.setItem('notif_settings', JSON.stringify(notifData));
-            db.ref().update(u); closeGlobalSettings();
+            if (Notification.permission === "granted") {
+                new Notification("✅ İzin Zaten Var!", { body: "Bildirimler aktif ve çalışıyor." });
+                return;
+            }
+
+            if (Notification.permission !== "denied") {
+                Notification.requestPermission().then(permission => {
+                    if (permission === "granted") {
+                        new Notification("🎉 Başarılı!", { body: "Artık bildirim alabileceksiniz." });
+                    } else {
+                        alert("İzin reddedildi. Tarayıcı ayarlarından (Kilit simgesi) sıfırlayıp tekrar deneyin.");
+                    }
+                });
+            } else {
+                alert("Bildirim izni daha önce engellenmiş! Adres çubuğundaki kilit simgesine tıklayıp 'İzin Ver' seçeneğini açmalısınız.");
+            }
         }
 
-        function loadNotifSettings() {
-            const s = JSON.parse(localStorage.getItem('notif_settings') || '{}');
-            if(s.enabled) document.getElementById('notif-enabled').classList.add('on');
-            if(s.start) document.getElementById('notif-start').value = s.start;
-            if(s.end) document.getElementById('notif-end').value = s.end;
-            if(s.copy) document.getElementById('notif-copy').value = s.copy;
-            if(s.percent) document.getElementById('notif-percent').value = s.percent;
-            if(s.time) document.getElementById('notif-time').value = s.time;
-            if(s.meter) document.getElementById('notif-meter').value = s.meter;
+        function testNotification() {
+            if (Notification.permission === "granted") {
+                try {
+                    new Notification("🔔 Test Bildirimi", { 
+                        body: "Bu bildirimi görüyorsanız sistem sorunsuz çalışıyor demektir.", 
+                        icon: 'https://cdn-icons-png.flaticon.com/512/2550/2550264.png',
+                        vibrate: [200, 100, 200] // Telefon titrer
+                    });
+                } catch (e) {
+                    alert("Bildirim gönderilemedi: " + e);
+                }
+            } else {
+                alert("Önce 'İzin İste' butonuna basarak izin vermelisiniz.");
+                requestPermission(); // Otomatik izin iste
+            }
         }
-
-        function requestPermission() { if (!("Notification" in window)) { alert("Tarayıcınız bildirimleri desteklemiyor!"); return; } Notification.requestPermission().then(p => { if(p === "granted") new Notification("🔔 Bildirimler Açık!", { body: "Makine durumları takip ediliyor." }); }); }
 
         function checkNotifications() {
             const s = JSON.parse(localStorage.getItem('notif_settings') || '{}');
             if(!s.enabled) return;
-            const now = new Date(); const start = new Date(); const [sh,sm] = (s.start || '08:30').split(':'); start.setHours(sh,sm,0); const end = new Date(); const [eh,em] = (s.end || '18:30').split(':'); end.setHours(eh,em,0);
-            if(now < start || now > end) return;
+
+            // Saat Kontrolü (Dakika Cinsinden)
+            const now = new Date();
+            const currentMins = now.getHours() * 60 + now.getMinutes();
+            
+            const [sh, sm] = (s.start || '08:30').split(':');
+            const startMins = parseInt(sh) * 60 + parseInt(sm);
+            
+            const [eh, em] = (s.end || '18:30').split(':');
+            const endMins = parseInt(eh) * 60 + parseInt(em);
+
+            // Aralık dışıysa çık
+            if (currentMins < startMins || currentMins > endMins) return;
 
             Object.values(machines).forEach(m => {
                 if(!isOnline(m) || !m.is_printing) return;
                 const name = m.display_name || 'Makine';
-                const id = m.machine_id || 'unknown';
-                if(s.copy > 0 && m.total_copies > 0) { const rem = m.total_copies - m.current_copy; if(rem <= s.copy && !notifiedState[id+'_copy']) { sendNotif(`📄 ${name}`, `${rem} kopya kaldı!`); notifiedState[id+'_copy'] = true; } else if (rem > s.copy) notifiedState[id+'_copy'] = false; }
-                if(s.percent > 0 && m.progress > 0) { const rem = 100 - m.progress; if(rem <= s.percent && !notifiedState[id+'_perc']) { sendNotif(`📊 ${name}`, `%${m.progress.toFixed(1)} tamamlandı!`); notifiedState[id+'_perc'] = true; } else if (rem > s.percent) notifiedState[id+'_perc'] = false; }
-                if(s.meter > 0 && m.remaining_length_m > 0) { if(m.remaining_length_m <= s.meter && !notifiedState[id+'_met']) { sendNotif(`📏 ${name}`, `${m.remaining_length_m.toFixed(1)}m kaldı!`); notifiedState[id+'_met'] = true; } else if (m.remaining_length_m > s.meter) notifiedState[id+'_met'] = false; }
+                const id = m.machine_id || 'u';
+
+                // Konsola bilgi yaz (Debug için)
+                // console.log(`Kontrol ediliyor: ${name}, Kopya: ${m.current_copy}/${m.total_copies}, Metre: ${m.remaining_length_m}`);
+
+                // 1. KOPYA
+                if(s.copy > 0 && m.total_copies > 0) {
+                    const rem = m.total_copies - m.current_copy;
+                    if(rem <= s.copy && !notifiedState[id+'_copy']) {
+                        sendNotif(`📄 ${name}`, `${rem} kopya kaldı!`);
+                        notifiedState[id+'_copy'] = true;
+                    } else if (rem > s.copy) notifiedState[id+'_copy'] = false;
+                }
+
+                // 2. YÜZDE
+                if(s.percent > 0 && m.progress > 0) {
+                    const rem = 100 - m.progress;
+                    if(rem <= s.percent && !notifiedState[id+'_perc']) {
+                        sendNotif(`📊 ${name}`, `%${m.progress.toFixed(1)} tamamlandı!`);
+                        notifiedState[id+'_perc'] = true;
+                    } else if (rem > s.percent) notifiedState[id+'_perc'] = false;
+                }
+
+                // 3. SÜRE (Dakika)
+                if(s.time > 0 && m.remaining_time) {
+                    const parts = m.remaining_time.split(':');
+                    if(parts.length === 3) {
+                        const remMins = (parseInt(parts[0])*60) + parseInt(parts[1]);
+                        if(remMins <= s.time && remMins > 0 && !notifiedState[id+'_time']) {
+                            sendNotif(`⏳ ${name}`, `${m.remaining_time} kaldı!`);
+                            notifiedState[id+'_time'] = true;
+                        } else if (remMins > s.time) notifiedState[id+'_time'] = false;
+                    }
+                }
+
+                // 4. METRE
+                if(s.meter > 0 && m.remaining_length_m > 0) {
+                    if(m.remaining_length_m <= s.meter && !notifiedState[id+'_met']) {
+                        sendNotif(`📏 ${name}`, `${Number(m.remaining_length_m).toFixed(1)}m kaldı!`);
+                        notifiedState[id+'_met'] = true;
+                    } else if (m.remaining_length_m > s.meter) notifiedState[id+'_met'] = false;
+                }
             });
         }
 
-        function sendNotif(title, body) { if(Notification.permission === "granted") new Notification(title, { body: body, icon: 'https://cdn-icons-png.flaticon.com/512/3602/3602510.png' }); }
+        function sendNotif(title, body) {
+            if (Notification.permission === "granted") {
+                new Notification(title, { 
+                    body: body, 
+                    icon: 'https://cdn-icons-png.flaticon.com/512/2550/2550264.png',
+                    requireInteraction: true // Kullanıcı kapatana kadar ekranda kalsın (Chrome destekliyorsa)
+                });
+            }
+        }
+
         function askDelete(id){ deleteId=id; document.getElementById('deleteModal').classList.add('show'); }
         function closeModal(){ document.getElementById('deleteModal').classList.remove('show'); }
         function confirmDelete(){ if(deleteId) { db.ref(`machines/${deleteId}`).remove(); const el = document.querySelector(`.gs-item[data-id="${deleteId}"]`); if(el) el.remove(); } closeModal(); delete openSettings[deleteId]; }
