@@ -11,116 +11,64 @@
     
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #0f172a;
-            min-height: 100vh;
-            color: #fff;
-            padding: 15px;
-        }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f172a; min-height: 100vh; color: #fff; padding: 15px; }
 
-        /* --- LOGİN EKRANI --- */
-        .login-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #0f172a; display: flex; justify-content: center; align-items: center; z-index: 9999;
-        }
-        .login-box {
-            background: rgba(30, 41, 59, 0.8); padding: 40px; border-radius: 20px;
-            text-align: center; border: 1px solid rgba(255,255,255,0.1); width: 90%; max-width: 350px;
-        }
-        .login-box input {
-            width: 100%; padding: 15px; margin-bottom: 15px; border-radius: 10px;
-            border: 1px solid #334155; background: #1e293b; color: white;
-        }
-        .login-box button {
-            width: 100%; padding: 15px; border-radius: 10px; border: none;
-            background: #3b82f6; color: white; font-weight: bold; cursor: pointer;
-        }
+        .login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0f172a; display: flex; justify-content: center; align-items: center; z-index: 9999; }
+        .login-box { background: rgba(30, 41, 59, 0.8); padding: 40px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); width: 90%; max-width: 350px; text-align: center; }
+        .login-box input { width: 100%; padding: 15px; margin-bottom: 15px; border-radius: 10px; border: 1px solid #334155; background: #1e293b; color: white; }
+        .login-box button { width: 100%; padding: 15px; border-radius: 10px; border: none; background: #3b82f6; color: white; font-weight: bold; cursor: pointer; }
 
-        /* --- ANA EKRAN --- */
         .app-container { display: none; max-width: 1200px; margin: 0 auto; }
-        
-        .header {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 15px 20px; background: #1e293b;
-            border-radius: 15px; margin-bottom: 25px; border: 1px solid #334155;
-        }
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: #1e293b; border-radius: 15px; margin-bottom: 25px; border: 1px solid #334155; }
         .header-title { font-size: 1.5em; font-weight: bold; }
         .header-status { font-size: 0.9em; color: #94a3b8; margin-top: 5px; }
-        
         .header-btns { display: flex; gap: 10px; }
-        .header-btn {
-            border: none; padding: 8px 15px; border-radius: 8px; color: white; cursor: pointer; font-size: 0.9em; font-weight: bold;
-        }
+        .header-btn { border: none; padding: 8px 15px; border-radius: 8px; color: white; cursor: pointer; font-size: 0.9em; font-weight: bold; }
         .btn-logout { background: #ef4444; }
         .btn-settings-top { background: #3b82f6; }
-
-        .pause-indicator {
-            display: none; background: rgba(245, 158, 11, 0.2); color: #f59e0b;
-            padding: 5px 15px; border-radius: 20px; font-size: 0.8em; margin-top: 8px; text-align: center;
-        }
+        .pause-indicator { display: none; background: rgba(245, 158, 11, 0.2); color: #f59e0b; padding: 5px 15px; border-radius: 20px; font-size: 0.8em; margin-top: 8px; text-align: center; }
         .pause-indicator.show { display: block; }
 
-        /* --- GRUPLAR --- */
         .printer-group { margin-bottom: 30px; }
-        .group-header {
-            font-size: 1.2em; font-weight: bold; padding: 10px 15px;
-            border-radius: 10px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;
-        }
-        
-        /* GRANDO TEMASI (Lacivert) */
+        .group-header { font-size: 1.2em; font-weight: bold; padding: 10px 15px; border-radius: 10px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
         .group-header.grando { background: linear-gradient(90deg, #172554, #1e3a8a); border-left: 5px solid #60a5fa; color: #bfdbfe; }
-        .machine-card.grando { background: #172554; border: 1px solid #1e40af; }
-        .machine-card.grando .machine-name { color: #dbeafe; }
-        .machine-card.grando .progress-fill { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
-        
-        /* TRUJET TEMASI (Turuncu) */
         .group-header.trujet { background: linear-gradient(90deg, #451a03, #78350f); border-left: 5px solid #f59e0b; color: #fde68a; }
-        .machine-card.trujet { background: #451a03; border: 1px solid #92400e; }
-        .machine-card.trujet .machine-name { color: #fef3c7; }
-        .machine-card.trujet .progress-fill { background: linear-gradient(90deg, #d97706, #f59e0b); }
 
-        /* KART TASARIMI */
         .machines-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; }
         .machine-card { border-radius: 15px; padding: 20px; transition: transform 0.2s; position: relative; overflow: hidden; }
-        
+        .machine-card.grando { background: #172554; border: 1px solid #1e40af; }
+        .machine-card.trujet { background: #451a03; border: 1px solid #92400e; }
         .machine-card.offline { opacity: 0.7; filter: grayscale(0.8); }
         .machine-card.printing { box-shadow: 0 0 15px rgba(255,255,255,0.1); }
-        
+
         .machine-header { display: flex; justify-content: space-between; margin-bottom: 15px; }
         .machine-title { display: flex; align-items: center; gap: 10px; }
-        .printer-badge { padding: 3px 8px; border-radius: 8px; font-size: 0.65em; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
+        .printer-badge { padding: 3px 8px; border-radius: 8px; font-size: 0.65em; font-weight: bold; text-transform: uppercase; }
         .printer-badge.grando { background: rgba(59, 130, 246, 0.2); color: #93c5fd; }
         .printer-badge.trujet { background: rgba(245, 158, 11, 0.2); color: #fcd34d; }
-        
+        .machine-name-input { background: transparent; border: 1px solid transparent; color: inherit; font-size: 1.2em; font-weight: bold; width: 100%; }
+        .machine-name-input:focus { border-bottom: 1px solid white; outline: none; }
         .status-badge { padding: 4px 12px; border-radius: 20px; font-size: 0.8em; font-weight: bold; background: rgba(0,0,0,0.3); }
 
         .job-info { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 10px; margin-bottom: 15px; }
-        .progress-bar { height: 24px; background: rgba(255,255,255,0.1); border-radius: 12px; overflow: hidden; margin: 10px 0; position: relative; }
-        .progress-text { position: absolute; width: 100%; text-align: center; line-height: 24px; font-size: 0.8em; font-weight: bold; text-shadow: 0 0 2px black; }
         
+        /* PROGRESS BAR FIX */
+        .progress-bar { height: 24px; background: rgba(255,255,255,0.1); border-radius: 12px; overflow: hidden; margin: 10px 0; position: relative; }
+        .progress-fill { height: 100%; transition: width 0.5s ease; }
+        .progress-fill.grando { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+        .progress-fill.trujet { background: linear-gradient(90deg, #d97706, #f59e0b); }
+        .progress-text { position: absolute; width: 100%; top:0; left:0; text-align: center; line-height: 24px; font-size: 0.8em; font-weight: bold; text-shadow: 0 0 2px black; z-index: 2; }
+
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.9em; }
         .stat-item { display: flex; justify-content: space-between; }
         .stat-label { opacity: 0.6; }
 
-        /* BUTONLAR VE GRID YAPISI */
         .control-wrapper { display: flex; flex-direction: column; gap: 8px; margin-top: 15px; }
         .btn-row-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
         .btn-row-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
-
-        .btn {
-            border: none; padding: 10px 5px; border-radius: 8px; color: white; font-weight: bold; cursor: pointer;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            font-size: 0.8em; gap: 3px; transition: opacity 0.2s; min-height: 50px;
-        }
-        
+        .btn { border: none; padding: 10px 5px; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.8em; gap: 3px; min-height: 50px; }
         .btn-row-4 .btn { font-size: 0.7em; padding: 8px 2px; }
-        .btn-row-4 .btn-icon { font-size: 1.2em; }
-
         .btn:disabled { opacity: 0.2; cursor: not-allowed; filter: grayscale(1); }
-        .btn:active { transform: scale(0.96); }
-
         .btn-print { background: #22c55e; color: #052e16; }
         .btn-pause { background: #f59e0b; color: #451a03; }
         .btn-cancel { background: #ef4444; }
@@ -129,471 +77,215 @@
         .btn-auto  { background: linear-gradient(135deg, #6366f1, #4f46e5); }
         .btn-load  { background: #06b6d4; }
 
-        /* YÖN BUTONLARI */
-        .move-panel { 
-            background: rgba(0,0,0,0.2); margin-top: 15px; padding: 10px; border-radius: 10px; 
-            display: flex; justify-content: center;
-        }
-        .move-grid {
-            display: grid; grid-template-columns: repeat(3, 50px); grid-template-rows: repeat(2, 40px); gap: 5px;
-        }
-        .btn-move {
-            background: #334155; border: none; border-radius: 8px; color: white; font-size: 1.2em; cursor: pointer;
-        }
-        .btn-move:hover { background: #475569; }
-        .btn-move:active { background: #3b82f6; }
+        .move-panel { background: rgba(0,0,0,0.2); margin-top: 15px; padding: 10px; border-radius: 10px; display: flex; justify-content: center; }
+        .move-grid { display: grid; grid-template-columns: repeat(3, 50px); grid-template-rows: repeat(2, 40px); gap: 5px; }
+        .btn-move { background: #334155; border: none; border-radius: 8px; color: white; font-size: 1.2em; cursor: pointer; }
         .btn-move:disabled { opacity: 0.2; cursor: not-allowed; }
+
+        .settings-section { background: rgba(0,0,0,0.3); border-radius: 12px; padding: 15px; margin-top: 15px; }
+        .settings-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        .settings-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
+        .settings-content.open { max-height: 600px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.1); }
+        .save-btn { width: 100%; padding: 10px; background: #22c55e; border: none; border-radius: 8px; color: white; font-weight: bold; margin-top: 10px; cursor: pointer; }
         
-        /* SETTINGS & EDIT */
-        .machine-name-display { font-size: 1.2em; font-weight: bold; cursor: default; }
-        
-        /* MODALS */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; }
         .modal.show { display: flex; }
         .modal-content { background: #1e293b; padding: 25px; border-radius: 15px; width: 95%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
-        .modal-header { font-size: 1.2em; font-weight: bold; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
-        
-        /* Global Settings List */
         .gs-item { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .gs-id { font-size: 0.8em; color: #94a3b8; width: 60px; }
         .gs-input-name { flex: 1; padding: 8px; background: #334155; border: 1px solid #475569; color: white; border-radius: 5px; }
         .gs-input-order { width: 50px; padding: 8px; background: #334155; border: 1px solid #475569; color: white; border-radius: 5px; text-align: center; }
-        
         .modal-btns { display: flex; gap: 10px; margin-top: 20px; }
         .modal-btns button { flex: 1; padding: 10px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
         .btn-confirm { background: #22c55e; color: white; }
         .btn-delete { background: #ef4444; color: white; }
         .btn-close { background: #475569; color: white; }
-
-        /* AYARLAR PENCERESİ (Kart İçi) */
-        .settings-section {
-            background: rgba(0,0,0,0.3); border-radius: 12px; padding: 15px; margin-top: 15px;
-        }
-        .settings-header {
-            display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none;
-        }
-        .settings-content {
-            max-height: 0; overflow: hidden; transition: max-height 0.3s ease;
-        }
-        .settings-content.open {
-            max-height: 600px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.1);
-        }
-        .setting-row {
-            display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
-        }
-        .setting-row:last-child { border-bottom: none; }
-        .toggle-switch {
-            position: relative; width: 40px; height: 22px; background: #444; border-radius: 11px; cursor: pointer; transition: 0.3s;
-        }
-        .toggle-switch.on { background: #4ade80; }
-        .toggle-switch::after {
-            content: ''; position: absolute; width: 18px; height: 18px; background: white; border-radius: 50%; top: 2px; left: 2px; transition: 0.3s;
-        }
-        .toggle-switch.on::after { left: 20px; }
-        
-        .number-input { width: 50px; padding: 4px; border-radius: 5px; border: 1px solid #555; background: #333; color: white; text-align: center; }
-        .save-btn { width: 100%; padding: 10px; background: #22c55e; border: none; border-radius: 8px; color: white; font-weight: bold; margin-top: 10px; cursor: pointer; }
-
     </style>
 </head>
 <body>
-
-    <!-- GİRİŞ EKRANI -->
     <div class="login-screen" id="loginScreen">
         <div class="login-box">
             <h1>🖨️</h1>
-            <h2>Makine Kontrol</h2>
-            <input type="email" id="email" placeholder="E-posta">
-            <input type="password" id="password" placeholder="Şifre">
+            <input type="email" id="email" placeholder="E-posta"><input type="password" id="password" placeholder="Şifre">
             <button onclick="login()">Giriş Yap</button>
             <p id="loginError" style="color:#ef4444; display:none; margin-top:10px;"></p>
         </div>
     </div>
 
-    <!-- ANA EKRAN -->
     <div class="app-container" id="appContainer">
         <div class="header">
-            <div>
-                <div class="header-title">🖨️ Kontrol Paneli</div>
-                <div id="statusText" class="header-status">Bağlanıyor...</div>
-            </div>
-            <div class="header-btns">
-                <button class="header-btn btn-settings-top" onclick="openGlobalSettings()">⚙️ Yönet</button>
-                <button class="header-btn btn-logout" onclick="logout()">Çıkış</button>
-            </div>
+            <div><div class="header-title">🖨️ Kontrol Paneli</div><div id="statusText" class="header-status">Bağlanıyor...</div></div>
+            <div class="header-btns"><button class="header-btn btn-settings-top" onclick="openGlobalSettings()">⚙️ Yönet</button><button class="header-btn btn-logout" onclick="logout()">Çıkış</button></div>
         </div>
-        
         <div class="pause-indicator" id="pauseIndicator">⏸️ Güncelleme duraklatıldı - Ayarlar açık</div>
         <div id="content"></div>
     </div>
 
-    <!-- GLOBAL SETTINGS MODAL -->
     <div class="modal" id="globalSettingsModal">
         <div class="modal-content">
-            <div class="modal-header">
-                <span>⚙️ Makine Yönetimi</span>
-                <span style="cursor:pointer;" onclick="closeGlobalSettings()">✖</span>
-            </div>
-            <p style="font-size:0.8em; color:#94a3b8; margin-bottom:15px;">Sıra No ne kadar küçükse makine o kadar önde gözükür.</p>
+            <div style="font-weight:bold; margin-bottom:15px;">⚙️ Makine Yönetimi <span style="float:right; cursor:pointer;" onclick="closeGlobalSettings()">✖</span></div>
             <div id="gsList"></div>
-            <div class="modal-btns">
-                <button class="btn-close" onclick="closeGlobalSettings()">İptal</button>
-                <button class="btn-confirm" onclick="saveGlobalSettings()">Kaydet & Çık</button>
-            </div>
+            <div class="modal-btns"><button class="btn-close" onclick="closeGlobalSettings()">İptal</button><button class="btn-confirm" onclick="saveGlobalSettings()">Kaydet</button></div>
+        </div>
+    </div>
+
+    <div class="modal" id="deleteModal">
+        <div class="modal-content">
+            <h3>⚠️ Sil?</h3><p>Makine silinecek.</p>
+            <div class="modal-btns"><button class="btn-close" onclick="closeModal()">İptal</button><button class="btn-delete" onclick="confirmDelete()">Sil</button></div>
         </div>
     </div>
 
     <script>
-        // FIREBASE AYARLARI
-        const firebaseConfig = {
-            apiKey: "AIzaSyByw1MrUACV0bphoLaw8BM7_RQj_x5_21o",
-            authDomain: "makine-otomasyon-183ab.firebaseapp.com",
-            databaseURL: "https://makine-otomasyon-183ab-default-rtdb.europe-west1.firebasedatabase.app",
-            projectId: "makine-otomasyon-183ab"
-        };
-        
+        const firebaseConfig = { apiKey: "AIzaSyByw1MrUACV0bphoLaw8BM7_RQj_x5_21o", authDomain: "makine-otomasyon-183ab.firebaseapp.com", databaseURL: "https://makine-otomasyon-183ab-default-rtdb.europe-west1.firebasedatabase.app", projectId: "makine-otomasyon-183ab" };
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.database();
-        
-        let machines = {};
-        let currentUser = null;
-        let openSettings = {};
-        let updatePaused = false;
+        let machines = {}, currentUser = null, deleteId = null, openSettings = {}, updatePaused = false, editingId = null;
 
-        // --- AUTH ---
-        function login() {
-            const e = document.getElementById('email').value;
-            const p = document.getElementById('password').value;
-            auth.signInWithEmailAndPassword(e, p).catch(err => {
-                document.getElementById('loginError').innerText = err.message;
-                document.getElementById('loginError').style.display = 'block';
-            });
-        }
+        function login() { auth.signInWithEmailAndPassword(document.getElementById('email').value, document.getElementById('password').value).catch(err => { document.getElementById('loginError').innerText = err.message; document.getElementById('loginError').style.display = 'block'; }); }
         function logout() { auth.signOut(); }
+        auth.onAuthStateChanged(u => { if(u){ currentUser=u; document.getElementById('loginScreen').style.display='none'; document.getElementById('appContainer').style.display='block'; startListener(); } else { document.getElementById('loginScreen').style.display='flex'; document.getElementById('appContainer').style.display='none'; } });
 
-        auth.onAuthStateChanged(user => {
-            if (user) {
-                currentUser = user;
-                document.getElementById('loginScreen').style.display = 'none';
-                document.getElementById('appContainer').style.display = 'block';
-                startListener();
-            } else {
-                document.getElementById('loginScreen').style.display = 'flex';
-                document.getElementById('appContainer').style.display = 'none';
-            }
-        });
+        function startListener() { db.ref('machines').on('value', snap => { if(!editingId && !updatePaused) { machines = snap.val() || {}; render(); } }); }
 
-        // --- DATA ---
-        function startListener() {
-            db.ref('machines').on('value', snap => {
-                machines = snap.val() || {};
-                render();
-            });
-        }
-
-        // --- RENDER ---
         function render() {
-            if(updatePaused) {
-                updateHeader();
-                return;
-            }
-
-            const content = document.getElementById('content');
-            content.innerHTML = '';
-            
+            const content = document.getElementById('content'); content.innerHTML = '';
             const ids = Object.keys(machines);
-            
-            // Grupları ayır
+            document.getElementById('statusText').innerText = `${ids.filter(id => isOnline(machines[id])).length} / ${ids.length} makine çevrimiçi`;
             const groups = { grando: [], trujet: [], unknown: [] };
             
-            // SIRALAMA MANTIĞI: 
-            // 1. Online Üstte
-            // 2. Sıra Numarası (Küçükten Büyüğe)
-            // 3. İsim (Alfabetik)
             ids.sort((a,b) => {
                 const mA = machines[a], mB = machines[b];
                 const onA = isOnline(mA), onB = isOnline(mB);
-                
-                if(onA && !onB) return -1;
-                if(!onA && onB) return 1;
-                
-                const orderA = mA.sort_order !== undefined ? parseInt(mA.sort_order) : 999;
-                const orderB = mB.sort_order !== undefined ? parseInt(mB.sort_order) : 999;
-                
-                if(orderA !== orderB) return orderA - orderB;
-                
+                if(onA && !onB) return -1; if(!onA && onB) return 1;
+                const oA = mA.sort_order || 999, oB = mB.sort_order || 999;
+                if(oA !== oB) return oA - oB;
                 return a.localeCompare(b);
             }).forEach(id => {
                 const m = machines[id];
                 let type = m.printer_type || 'unknown';
-                if(type === 'unknown' && (m.display_name || '').toLowerCase().includes('trujet')) type = 'trujet';
-                if(type === 'unknown') type = 'grando'; 
-                
-                if (groups[type]) groups[type].push(id);
-                else groups['unknown'].push(id);
+                if(type === 'unknown' && (m.display_name||'').toLowerCase().includes('trujet')) type = 'trujet';
+                if(type === 'unknown') type = 'grando';
+                if(groups[type]) groups[type].push(id); else groups['unknown'].push(id);
             });
 
-            // RENDER GROUPS
-            if (groups.grando.length > 0) {
-                content.innerHTML += `<div class="printer-group"><div class="group-header grando">🔵 Grando (${groups.grando.length})</div><div class="machines-grid">${groups.grando.map(id => cardHTML(id, machines[id], 'grando')).join('')}</div></div>`;
-            }
-            if (groups.trujet.length > 0) {
-                content.innerHTML += `<div class="printer-group"><div class="group-header trujet">🟠 TruJet (${groups.trujet.length})</div><div class="machines-grid">${groups.trujet.map(id => cardHTML(id, machines[id], 'trujet')).join('')}</div></div>`;
-            }
-            if (groups.unknown.length > 0) {
-                content.innerHTML += `<div class="printer-group"><div class="group-header">⚪ Diğer (${groups.unknown.length})</div><div class="machines-grid">${groups.unknown.map(id => cardHTML(id, machines[id], 'unknown')).join('')}</div></div>`;
-            }
-            
-            updateHeader();
-        }
-
-        function updateHeader() {
-            const ids = Object.keys(machines);
-            const onlineCount = ids.filter(id => isOnline(machines[id])).length;
-            document.getElementById('statusText').innerText = `${onlineCount} / ${ids.length} makine çevrimiçi`;
+            if(groups.grando.length) content.innerHTML += `<div class="printer-group"><div class="group-header grando">🔵 Grando (${groups.grando.length})</div><div class="machines-grid">${groups.grando.map(id => cardHTML(id, machines[id], 'grando')).join('')}</div></div>`;
+            if(groups.trujet.length) content.innerHTML += `<div class="printer-group"><div class="group-header trujet">🟠 TruJet (${groups.trujet.length})</div><div class="machines-grid">${groups.trujet.map(id => cardHTML(id, machines[id], 'trujet')).join('')}</div></div>`;
+            if(groups.unknown.length) content.innerHTML += `<div class="printer-group"><div class="group-header">⚪ Diğer (${groups.unknown.length})</div><div class="machines-grid">${groups.unknown.map(id => cardHTML(id, machines[id], 'unknown')).join('')}</div></div>`;
         }
 
         function cardHTML(id, m, type) {
             const online = isOnline(m);
-            const statusClass = online ? (m.is_printing ? 'printing' : 'online') : 'offline';
             const statusText = online ? (m.is_printing ? 'Basılıyor' : (m.is_paused ? 'Duraklatıldı' : 'Boşta')) : 'Çevrimdışı';
+            const statusClass = online ? (m.is_printing ? 'printing' : 'online') : 'offline';
             const progress = m.progress || 0;
             const name = m.display_name || id;
-            const settings = m.settings || {};
-            const isSettingsOpen = openSettings[id] || false;
-
-            // --- BUTON KİLİTLEME ---
-            let dGlobal = !online ? 'disabled' : ''; 
+            const isOpen = openSettings[id] || false;
             
-            let dPrint = dGlobal;
-            let dPauseResume = dGlobal;
-            let dCancel = dGlobal;
-            let dCheck = dGlobal;
-            let dClean = dGlobal;
-            let dAuto = dGlobal;
-            let dInk = dGlobal;
-            let dMoveUD = dGlobal; 
-            let dMoveLR = dGlobal; 
+            // Hesaplanan değerleri kullan (Python'dan geliyor)
+            const remainingTime = m.remaining_time || '--:--:--';
+            const remainingMeter = m.remaining_length_m ? `(+${m.remaining_length_m.toFixed(1)}m)` : '';
 
-            if (online) {
-                if (m.is_printing) {
-                    // BASILIYOR:
-                    dPrint = 'disabled';
-                    dCheck = 'disabled';
-                    dClean = 'disabled';
-                    // dAuto AÇIK (Pause atıp temizler)
-                    dInk = 'disabled';
-                    dMoveUD = 'disabled';
-                    dMoveLR = 'disabled';
-                } else if (m.is_paused) {
-                    // DURAKLATILDI: 
-                    dPrint = 'disabled';
-                    dCheck = 'disabled';
-                    dInk = 'disabled';
-                    dMoveUD = 'disabled';
+            let dG = !online ? 'disabled' : '';
+            let dP=dG, dPR=dG, dC=dG, dCh=dG, dCl=dG, dA=dG, dI=dG, dM=dG;
+
+            if(online) {
+                if(m.is_printing) { 
+                    dP='disabled'; dCh='disabled'; dCl='disabled'; dI='disabled'; dM='disabled';
+                    // dA (AutoClean) ve Pause, Cancel AÇIK
+                } else if(m.is_paused) {
+                    dP='disabled'; dCh='disabled'; dI='disabled'; dM='disabled';
                 }
             }
 
-            const pauseBtn = m.is_paused 
-                ? `<button class="btn btn-print" onclick="cmd('${id}','resume')" ${dPauseResume}><span class="btn-icon">▶️</span>Devam</button>`
-                : `<button class="btn btn-pause" onclick="cmd('${id}','pause')" ${dPauseResume}><span class="btn-icon">⏸️</span>Pause</button>`;
+            const pBtn = m.is_paused 
+                ? `<button class="btn btn-print" onclick="cmd('${id}','resume')" ${dPR}><span class="btn-icon">▶️</span>Devam</button>`
+                : `<button class="btn btn-pause" onclick="cmd('${id}','pause')" ${dPR}><span class="btn-icon">⏸️</span>Pause</button>`;
 
             return `
             <div class="machine-card ${type} ${statusClass}">
                 <div class="machine-header">
                     <div>
-                        <div class="machine-title">
-                            <span class="printer-badge ${type}">${type}</span>
-                            <span class="machine-name-display">${name}</span>
-                        </div>
+                        <div class="machine-title"><span class="printer-badge ${type}">${type}</span><input type="text" class="machine-name-input" value="${name}" onfocus="editingId='${id}'" onblur="saveName('${id}',this.value)"></div>
                         <div class="machine-id">${id}</div>
                     </div>
                     <span class="status-badge">${statusText}</span>
                 </div>
-
                 <div class="job-info">
-                    <div style="margin-bottom:5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                        📄 ${m.job_name || '-'}
-                    </div>
+                    <div style="margin-bottom:5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">📄 ${m.job_name||'-'}</div>
                     <div class="progress-bar">
-                        <div class="progress-fill ${type}" style="width:${Math.max(progress, 5)}%"></div>
+                        <div class="progress-fill ${type}" style="width:${Math.max(progress,5)}%"></div>
                         <div class="progress-text">${progress.toFixed(1)}%</div>
                     </div>
                     <div class="stats-grid">
-                        <div class="stat-item"><span class="stat-label">Kopya:</span> <span>${m.current_copy || 0}/${m.total_copies || 0}</span></div>
-                        <div class="stat-item"><span class="stat-label">Kalan:</span> <span>${m.remaining_time || '--:--'}</span></div>
-                        <div class="stat-item"><span class="stat-label">Süre:</span> <span>${m.elapsed_time || '--:--'}</span></div>
-                        <div class="stat-item"><span class="stat-label">Metre:</span> <span>${(m.total_length_m || 0).toFixed(1)}m</span></div>
+                        <div class="stat-item"><span class="stat-label">Kopya:</span> <span>${m.current_copy||0}/${m.total_copies||0}</span></div>
+                        <div class="stat-item"><span class="stat-label">Süre:</span> <span>${m.elapsed_time||'--:--'}</span></div>
+                        <div class="stat-item"><span class="stat-label">Kalan:</span> <span>${remainingTime}</span></div>
+                        <div class="stat-item"><span class="stat-label">Metre:</span> <span>${(m.total_length_m||0).toFixed(1)}m ${remainingMeter}</span></div>
                     </div>
                 </div>
-
                 <div class="control-wrapper">
                     <div class="btn-row-3">
-                        <button class="btn btn-print" onclick="cmd('${id}','print')" ${dPrint}><span class="btn-icon">▶️</span>Print</button>
-                        ${pauseBtn}
-                        <button class="btn btn-cancel" onclick="cmd('${id}','cancel')" ${dCancel}><span class="btn-icon">⏹️</span>Cancel</button>
+                        <button class="btn btn-print" onclick="cmd('${id}','print')" ${dP}><span class="btn-icon">▶️</span>Print</button>
+                        ${pBtn}
+                        <button class="btn btn-cancel" onclick="cmd('${id}','cancel')" ${dC}><span class="btn-icon">⏹️</span>Cancel</button>
                     </div>
-                    
                     <div class="btn-row-4">
-                        <button class="btn btn-check" onclick="cmd('${id}','check')" ${dCheck}><span class="btn-icon">✅</span>Check</button>
-                        <button class="btn btn-clean" onclick="cmd('${id}','clean')" ${dClean}><span class="btn-icon">🧹</span>Clean</button>
-                        <button class="btn btn-auto" onclick="cmd('${id}','force_full_clean')" ${dAuto}><span class="btn-icon">🤖</span>Auto</button>
-                        <button class="btn btn-load" onclick="cmd('${id}','load_ink')" ${dInk}><span class="btn-icon">🖨️</span>Ink</button>
+                        <button class="btn btn-check" onclick="cmd('${id}','check')" ${dCh}><span class="btn-icon">✅</span>Check</button>
+                        <button class="btn btn-clean" onclick="cmd('${id}','clean')" ${dCl}><span class="btn-icon">🧹</span>Clean</button>
+                        <button class="btn btn-auto" onclick="cmd('${id}','force_full_clean')" ${dA}><span class="btn-icon">🤖</span>AutoClean</button>
+                        <button class="btn btn-load" onclick="cmd('${id}','load_ink')" ${dI}><span class="btn-icon">🖨️</span>Ink</button>
                     </div>
                 </div>
-
                 <div class="move-panel">
                     <div class="move-grid">
-                        <div></div>
-                        <button class="btn-move" onclick="cmd('${id}','back')" ${dMoveUD}>⬆️</button>
-                        <div></div>
-                        <button class="btn-move" onclick="cmd('${id}','left')" ${dMoveLR}>⬅️</button>
-                        <div></div>
-                        <button class="btn-move" onclick="cmd('${id}','right')" ${dMoveLR}>➡️</button>
-                        <div></div>
-                        <button class="btn-move" onclick="cmd('${id}','ahead')" ${dMoveUD}>⬇️</button>
-                        <div></div>
+                        <div></div><button class="btn-move" onclick="cmd('${id}','back')" ${dM}>⬆️</button><div></div>
+                        <button class="btn-move" onclick="cmd('${id}','left')" ${dM}>⬅️</button><div></div><button class="btn-move" onclick="cmd('${id}','right')" ${dM}>➡️</button>
+                        <div></div><button class="btn-move" onclick="cmd('${id}','ahead')" ${dM}>⬇️</button><div></div>
                     </div>
                 </div>
-
                 <div class="settings-section">
-                    <div class="settings-header" onclick="toggleSettings('${id}')">
-                        <span>⚙️ Otomatik Temizlik & Ayarlar</span>
-                        <span class="settings-toggle ${isSettingsOpen ? 'open' : ''}">▼</span>
-                    </div>
-                    <div class="settings-content ${isSettingsOpen ? 'open' : ''}" id="settings-content-${id}">
-                        <div class="setting-row">
-                            <span class="setting-label">⏰ Süre Bazlı</span>
-                            <div class="toggle-switch ${settings.auto_clean_time_enabled ? 'on' : ''}" 
-                                id="time-enabled-${id}" onclick="this.classList.toggle('on')"></div>
-                        </div>
-                        <div class="setting-row">
-                            <span class="setting-label">Her (sa:dk:sn)</span>
-                            <div class="time-inputs">
-                                <input type="number" class="number-input" id="time-h-${id}" value="${settings.auto_clean_time_hours||0}" min="0"> :
-                                <input type="number" class="number-input" id="time-m-${id}" value="${settings.auto_clean_time_minutes||5}" min="0"> :
-                                <input type="number" class="number-input" id="time-s-${id}" value="${settings.auto_clean_time_seconds||0}" min="0">
-                            </div>
-                        </div>
-                        <div class="setting-row">
-                            <span class="setting-label">📋 Kopya Bazlı</span>
-                            <div class="toggle-switch ${settings.auto_clean_copy_enabled ? 'on' : ''}" 
-                                id="copy-enabled-${id}" onclick="this.classList.toggle('on')"></div>
-                        </div>
-                        <div class="setting-row">
-                            <span class="setting-label">Her X kopyada</span>
-                            <input type="number" class="number-input" id="copy-int-${id}" value="${settings.auto_clean_copy_interval||10}" min="1">
-                        </div>
-                        <div class="setting-row">
-                            <span class="setting-label">🎨 Desen Bazlı</span>
-                            <div class="toggle-switch ${settings.auto_clean_pattern_enabled ? 'on' : ''}" 
-                                id="pattern-enabled-${id}" onclick="this.classList.toggle('on')"></div>
-                        </div>
-                        <div class="setting-row">
-                            <span class="setting-label">Her X desende</span>
-                            <input type="number" class="number-input" id="pattern-int-${id}" value="${settings.auto_clean_pattern_interval||3}" min="1">
-                        </div>
-                        <button class="save-btn" onclick="saveSettings('${id}')">Ayarları Kaydet</button>
+                    <div class="settings-header" onclick="toggleSettings('${id}')"><span>⚙️ Ayarlar</span><span>${isOpen?'▲':'▼'}</span></div>
+                    <div class="settings-content ${isOpen?'open':''}" id="settings-content-${id}">
+                        <button class="save-btn" style="background:#ef4444;" onclick="askDelete('${id}')">🗑️ Makineyi Sil</button>
                     </div>
                 </div>
-            </div>
-            `;
+            </div>`;
         }
 
-        // --- ACTIONS ---
-        function isOnline(m) { return m.last_seen && (Date.now() - m.last_seen < 40000); }
-
-        function cmd(id, c) {
-            db.ref(`machines/${id}/pending_command`).set({ command: c, id: Date.now().toString() });
-        }
-
-        function pauseUpdates() {
-            updatePaused = true;
-            document.getElementById('pauseIndicator').classList.add('show');
-        }
+        function isOnline(m){ return m.last_seen && (Date.now()-m.last_seen < 40000); }
+        function cmd(id,c){ db.ref(`machines/${id}/pending_command`).set({command:c, id:Date.now().toString()}); }
+        function saveName(id,v){ if(v.trim()){ db.ref(`machines/${id}`).update({display_name:v}); } editingId=null; render(); }
         
-        function resumeUpdates() {
-            updatePaused = false;
-            document.getElementById('pauseIndicator').classList.remove('show');
+        function toggleSettings(id){
+            updatePaused = true; 
+            document.getElementById('pauseIndicator').classList.add('show');
+            openSettings[id] = !openSettings[id];
+            
+            // Eğer kapatılıyorsa ve başka açık yoksa pause'u kaldır
+            if(!openSettings[id] && !Object.values(openSettings).includes(true)) {
+                updatePaused = false;
+                document.getElementById('pauseIndicator').classList.remove('show');
+            }
             render();
         }
 
-        function toggleSettings(id) {
-            pauseUpdates();
-            const content = document.getElementById(`settings-content-${id}`);
-            if(content.classList.contains('open')) {
-                content.classList.remove('open');
-                openSettings[id] = false;
-                resumeUpdates();
-            } else {
-                content.classList.add('open');
-                openSettings[id] = true;
-            }
-        }
-
-        function saveSettings(id) {
-            const s = {
-                auto_clean_time_enabled: document.getElementById(`time-enabled-${id}`).classList.contains('on'),
-                auto_clean_time_hours: parseInt(document.getElementById(`time-h-${id}`).value) || 0,
-                auto_clean_time_minutes: parseInt(document.getElementById(`time-m-${id}`).value) || 5,
-                auto_clean_time_seconds: parseInt(document.getElementById(`time-s-${id}`).value) || 0,
-                auto_clean_copy_enabled: document.getElementById(`copy-enabled-${id}`).classList.contains('on'),
-                auto_clean_copy_interval: parseInt(document.getElementById(`copy-int-${id}`).value) || 10,
-                auto_clean_pattern_enabled: document.getElementById(`pattern-enabled-${id}`).classList.contains('on'),
-                auto_clean_pattern_interval: parseInt(document.getElementById(`pattern-int-${id}`).value) || 3,
-                from_web: true
-            };
-            db.ref(`machines/${id}/settings`).update(s);
-            toggleSettings(id);
-        }
-
-        // --- GLOBAL SETTINGS (MANAGE) ---
-        function openGlobalSettings() {
-            pauseUpdates();
-            const list = document.getElementById('gsList');
-            list.innerHTML = '';
-            
-            Object.keys(machines).forEach(id => {
-                const m = machines[id];
-                const name = m.display_name || id;
-                const order = m.sort_order !== undefined ? m.sort_order : 999;
-                
-                list.innerHTML += `
-                    <div class="gs-item" data-id="${id}">
-                        <span class="gs-id">${id.substring(0,6)}...</span>
-                        <input type="text" class="gs-input-name" value="${name}" placeholder="Makine İsmi">
-                        <input type="number" class="gs-input-order" value="${order}" placeholder="Sıra">
-                        <button class="btn-delete" style="width:auto; padding:5px 10px;" onclick="db.ref('machines/${id}').remove(); this.parentElement.remove();">🗑️</button>
-                    </div>
-                `;
+        function openGlobalSettings(){
+            updatePaused=true; document.getElementById('pauseIndicator').classList.add('show');
+            const l=document.getElementById('gsList'); l.innerHTML='';
+            Object.keys(machines).forEach(id=>{
+                l.innerHTML+=`<div class="gs-item" data-id="${id}"><span style="font-size:0.8em;width:60px;">${id.substring(0,6)}</span><input class="gs-input-name" value="${machines[id].display_name||id}"><input class="gs-input-order" type="number" value="${machines[id].sort_order||999}"></div>`;
             });
-            
             document.getElementById('globalSettingsModal').classList.add('show');
         }
-
-        function saveGlobalSettings() {
-            const items = document.querySelectorAll('.gs-item');
-            const updates = {};
-            
-            items.forEach(item => {
-                const id = item.getAttribute('data-id');
-                const name = item.querySelector('.gs-input-name').value;
-                const order = parseInt(item.querySelector('.gs-input-order').value) || 999;
-                
-                updates[`machines/${id}/display_name`] = name;
-                updates[`machines/${id}/sort_order`] = order;
-            });
-            
-            db.ref().update(updates);
-            closeGlobalSettings();
+        function closeGlobalSettings(){ document.getElementById('globalSettingsModal').classList.remove('show'); updatePaused=false; document.getElementById('pauseIndicator').classList.remove('show'); render(); }
+        function saveGlobalSettings(){
+            const u={}; document.querySelectorAll('.gs-item').forEach(i=>{ const id=i.getAttribute('data-id'); u[`machines/${id}/display_name`]=i.querySelector('.gs-input-name').value; u[`machines/${id}/sort_order`]=parseInt(i.querySelector('.gs-input-order').value)||999; });
+            db.ref().update(u); closeGlobalSettings();
         }
-
-        function closeGlobalSettings() {
-            document.getElementById('globalSettingsModal').classList.remove('show');
-            resumeUpdates();
-        }
-
+        function askDelete(id){ deleteId=id; document.getElementById('deleteModal').classList.add('show'); }
+        function closeModal(){ document.getElementById('deleteModal').classList.remove('show'); }
+        function confirmDelete(){ if(deleteId) db.ref(`machines/${deleteId}`).remove(); closeModal(); delete openSettings[deleteId]; }
     </script>
 </body>
 </html>
