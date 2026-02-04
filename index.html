@@ -13,11 +13,13 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f172a; min-height: 100vh; color: #fff; padding: 15px; }
 
+        /* GİRİŞ */
         .login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0f172a; display: flex; justify-content: center; align-items: center; z-index: 9999; }
         .login-box { background: rgba(30, 41, 59, 0.8); padding: 40px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); width: 90%; max-width: 350px; text-align: center; }
         .login-box input { width: 100%; padding: 15px; margin-bottom: 15px; border-radius: 10px; border: 1px solid #334155; background: #1e293b; color: white; }
         .login-box button { width: 100%; padding: 15px; border-radius: 10px; border: none; background: #3b82f6; color: white; font-weight: bold; cursor: pointer; }
 
+        /* HEADER */
         .app-container { display: none; max-width: 1200px; margin: 0 auto; }
         .header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: #1e293b; border-radius: 15px; margin-bottom: 25px; border: 1px solid #334155; }
         .header-title { font-size: 1.5em; font-weight: bold; }
@@ -29,11 +31,13 @@
         .pause-indicator { display: none; background: rgba(245, 158, 11, 0.2); color: #f59e0b; padding: 5px 15px; border-radius: 20px; font-size: 0.8em; margin-top: 8px; text-align: center; }
         .pause-indicator.show { display: block; }
 
+        /* GRUPLAR */
         .printer-group { margin-bottom: 30px; }
         .group-header { font-size: 1.2em; font-weight: bold; padding: 10px 15px; border-radius: 10px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
         .group-header.grando { background: linear-gradient(90deg, #172554, #1e3a8a); border-left: 5px solid #60a5fa; color: #bfdbfe; }
         .group-header.trujet { background: linear-gradient(90deg, #451a03, #78350f); border-left: 5px solid #f59e0b; color: #fde68a; }
 
+        /* KARTLAR */
         .machines-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; }
         .machine-card { border-radius: 15px; padding: 20px; transition: transform 0.2s; position: relative; overflow: hidden; }
         .machine-card.grando { background: #172554; border: 1px solid #1e40af; }
@@ -61,12 +65,16 @@
         .stat-item { display: flex; justify-content: space-between; }
         .stat-label { opacity: 0.6; }
 
+        /* BUTONLAR */
         .control-wrapper { display: flex; flex-direction: column; gap: 8px; margin-top: 15px; }
         .btn-row-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
         .btn-row-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+        
         .btn { border: none; padding: 10px 5px; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.8em; gap: 3px; min-height: 50px; }
         .btn-row-4 .btn { font-size: 0.7em; padding: 8px 2px; }
         .btn:disabled { opacity: 0.2; cursor: not-allowed; filter: grayscale(1); }
+        .btn:active { transform: scale(0.96); }
+
         .btn-print { background: #22c55e; color: #052e16; }
         .btn-pause { background: #f59e0b; color: #451a03; }
         .btn-cancel { background: #ef4444; }
@@ -75,17 +83,26 @@
         .btn-auto  { background: linear-gradient(135deg, #6366f1, #4f46e5); }
         .btn-load  { background: #06b6d4; }
 
+        /* YÖN */
         .move-panel { background: rgba(0,0,0,0.2); margin-top: 15px; padding: 10px; border-radius: 10px; display: flex; justify-content: center; }
         .move-grid { display: grid; grid-template-columns: repeat(3, 50px); grid-template-rows: repeat(2, 40px); gap: 5px; }
         .btn-move { background: #334155; border: none; border-radius: 8px; color: white; font-size: 1.2em; cursor: pointer; }
         .btn-move:disabled { opacity: 0.2; cursor: not-allowed; }
 
+        /* KART AYARLARI */
         .settings-section { background: rgba(0,0,0,0.3); border-radius: 12px; padding: 15px; margin-top: 15px; }
         .settings-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
         .settings-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
         .settings-content.open { max-height: 600px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.1); }
         .save-btn { width: 100%; padding: 10px; background: #22c55e; border: none; border-radius: 8px; color: white; font-weight: bold; margin-top: 10px; cursor: pointer; }
-        
+        .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .toggle-switch { position: relative; width: 40px; height: 22px; background: #444; border-radius: 11px; cursor: pointer; transition: 0.3s; }
+        .toggle-switch.on { background: #4ade80; }
+        .toggle-switch::after { content: ''; position: absolute; width: 18px; height: 18px; background: white; border-radius: 50%; top: 2px; left: 2px; transition: 0.3s; }
+        .toggle-switch.on::after { left: 20px; }
+        .number-input { width: 50px; padding: 4px; border-radius: 5px; border: 1px solid #555; background: #333; color: white; text-align: center; }
+
+        /* MODALLAR */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; }
         .modal.show { display: flex; }
         .modal-content { background: #1e293b; padding: 25px; border-radius: 15px; width: 95%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
@@ -95,11 +112,14 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; }
 
+        /* YÖNET LİSTESİ */
         .gs-item { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .gs-id { font-size: 0.8em; color: #94a3b8; width: 60px; }
         .gs-input-name { flex: 1; padding: 8px; background: #334155; border: 1px solid #475569; color: white; border-radius: 5px; }
         .gs-input-order { width: 50px; padding: 8px; background: #334155; border: 1px solid #475569; color: white; border-radius: 5px; text-align: center; }
-        
-        /* Bildirim Ayarları */
+        .btn-icon-delete { background: #ef4444; color: white; border: none; border-radius: 5px; width: 35px; height: 35px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.2em; }
+
+        /* BİLDİRİM */
         .notif-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         .notif-input { width: 60px; padding: 5px; background: #334155; border: 1px solid #475569; color: white; border-radius: 5px; text-align: center; }
         .time-range { display: flex; align-items: center; gap: 5px; }
@@ -109,6 +129,9 @@
         .btn-confirm { background: #22c55e; color: white; }
         .btn-delete { background: #ef4444; color: white; }
         .btn-close { background: #475569; color: white; }
+        
+        /* Silme Modalı Üstte Olsun */
+        #deleteModal { z-index: 2000; }
     </style>
 </head>
 <body>
@@ -134,12 +157,13 @@
     <div class="modal" id="globalSettingsModal">
         <div class="modal-content">
             <div class="modal-tabs">
-                <div class="modal-tab active" onclick="switchTab('machines')">Makineler</div>
+                <div class="modal-tab active" onclick="switchTab('machines')">Makineler & Sıralama</div>
                 <div class="modal-tab" onclick="switchTab('notifications')">Bildirimler 🔔</div>
             </div>
 
             <!-- MAKİNE LİSTESİ -->
             <div id="tab-machines" class="tab-content active">
+                <p style="font-size:0.8em; color:#94a3b8; margin-bottom:10px;">İsim değiştir, sırala (1,2..) veya sil.</p>
                 <div id="gsList"></div>
             </div>
 
@@ -158,23 +182,10 @@
                         </div>
                     </div>
                 </div>
-
-                <div class="notif-row">
-                    <span>📄 Kalan Kopya Azalınca</span>
-                    <div><input type="number" class="notif-input" id="notif-copy" placeholder="10"></div>
-                </div>
-                <div class="notif-row">
-                    <span>📊 Kalan Yüzde Azalınca (%)</span>
-                    <div><input type="number" class="notif-input" id="notif-percent" placeholder="5"></div>
-                </div>
-                <div class="notif-row">
-                    <span>⏳ Kalan Süre Azalınca (dk)</span>
-                    <div><input type="number" class="notif-input" id="notif-time" placeholder="15"></div>
-                </div>
-                <div class="notif-row">
-                    <span>📏 Kalan Metre Azalınca (m)</span>
-                    <div><input type="number" class="notif-input" id="notif-meter" placeholder="20"></div>
-                </div>
+                <div class="notif-row"><span>📄 Kalan Kopya Azalınca</span><div><input type="number" class="notif-input" id="notif-copy" placeholder="10"></div></div>
+                <div class="notif-row"><span>📊 Kalan Yüzde Azalınca (%)</span><div><input type="number" class="notif-input" id="notif-percent" placeholder="5"></div></div>
+                <div class="notif-row"><span>⏳ Kalan Süre Azalınca (dk)</span><div><input type="number" class="notif-input" id="notif-time" placeholder="15"></div></div>
+                <div class="notif-row"><span>📏 Kalan Metre Azalınca (m)</span><div><input type="number" class="notif-input" id="notif-meter" placeholder="20"></div></div>
                 <button class="btn-confirm" style="width:100%; margin-top:10px;" onclick="requestPermission()">🔔 İzin İste & Test Gönder</button>
             </div>
 
@@ -182,10 +193,12 @@
         </div>
     </div>
 
+    <!-- SİLME ONAY MODALI -->
     <div class="modal" id="deleteModal">
-        <div class="modal-content">
-            <h3>⚠️ Sil?</h3><p>Makine silinecek.</p>
-            <div class="modal-btns"><button class="btn-close" onclick="closeModal()">İptal</button><button class="btn-delete" onclick="confirmDelete()">Sil</button></div>
+        <div class="modal-content" style="border: 1px solid #ef4444;">
+            <h3 style="color:#ef4444;">⚠️ Makineyi Sil?</h3>
+            <p>Bu makine listeden tamamen kaldırılacak.</p>
+            <div class="modal-btns"><button class="btn-close" onclick="closeModal()">Vazgeç</button><button class="btn-delete" onclick="confirmDelete()">Evet, Sil</button></div>
         </div>
     </div>
 
@@ -194,10 +207,7 @@
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.database();
-        let machines = {}, currentUser = null, deleteId = null, openSettings = {}, updatePaused = false, editingId = null;
-        
-        // Bildirim Durumları (Tekrar tekrar atmaması için)
-        let notifiedState = {}; 
+        let machines = {}, currentUser = null, deleteId = null, openSettings = {}, updatePaused = false, editingId = null, notifiedState = {};
 
         function login() { auth.signInWithEmailAndPassword(document.getElementById('email').value, document.getElementById('password').value).catch(err => { document.getElementById('loginError').innerText = err.message; document.getElementById('loginError').style.display = 'block'; }); }
         function logout() { auth.signOut(); }
@@ -233,8 +243,8 @@
 
         function cardHTML(id, m, type) {
             const online = isOnline(m);
-            const statusText = online ? (m.is_printing ? 'Basılıyor' : (m.is_paused ? 'Duraklatıldı' : 'Boşta')) : 'Çevrimdışı';
             const statusClass = online ? (m.is_printing ? 'printing' : 'online') : 'offline';
+            const statusText = online ? (m.is_printing ? 'Basılıyor' : (m.is_paused ? 'Duraklatıldı' : 'Boşta')) : 'Çevrimdışı';
             const progress = m.progress || 0;
             const name = m.display_name || id;
             const isOpen = openSettings[id] || false;
@@ -302,7 +312,6 @@
                 <div class="settings-section">
                     <div class="settings-header" onclick="toggleSettings('${id}')"><span>⚙️ Ayarlar</span><span>${isOpen?'▲':'▼'}</span></div>
                     <div class="settings-content ${isOpen?'open':''}" id="settings-content-${id}">
-                        <!-- KART İÇİ AYARLAR KISALTMASI -->
                         <div style="margin-top:10px;">
                             <span class="setting-label">⏰ Süre: </span><input class="number-input" id="time-h-${id}" value="${m.settings?.auto_clean_time_hours||0}">:<input class="number-input" id="time-m-${id}" value="${m.settings?.auto_clean_time_minutes||5}">
                             <button class="save-btn" onclick="saveSettings('${id}')">Kaydet</button>
@@ -318,34 +327,19 @@
         function toggleSettings(id){ updatePaused=true; document.getElementById('pauseIndicator').classList.add('show'); openSettings[id]=!openSettings[id]; if(!openSettings[id] && !Object.values(openSettings).includes(true)){updatePaused=false; document.getElementById('pauseIndicator').classList.remove('show');} render(); }
         
         function saveSettings(id) {
-            const s = { 
-                auto_clean_time_hours: parseInt(document.getElementById(`time-h-${id}`).value)||0,
-                auto_clean_time_minutes: parseInt(document.getElementById(`time-m-${id}`).value)||5,
-                from_web: true 
-            };
+            const s = { auto_clean_time_hours: parseInt(document.getElementById(`time-h-${id}`).value)||0, auto_clean_time_minutes: parseInt(document.getElementById(`time-m-${id}`).value)||5, from_web: true };
             db.ref(`machines/${id}/settings`).update(s); toggleSettings(id);
         }
 
         // --- GLOBAL & BİLDİRİM ---
-        function openGlobalSettings(){ updatePaused=true; document.getElementById('pauseIndicator').classList.add('show'); const l=document.getElementById('gsList'); l.innerHTML=''; Object.keys(machines).forEach(id=>{ l.innerHTML+=`<div class="gs-item" data-id="${id}"><span style="font-size:0.8em;width:60px;">${id.substring(0,6)}</span><input class="gs-input-name" value="${machines[id].display_name||id}"><input class="gs-input-order" type="number" value="${machines[id].sort_order||999}"></div>`; }); document.getElementById('globalSettingsModal').classList.add('show'); }
+        function openGlobalSettings(){ updatePaused=true; document.getElementById('pauseIndicator').classList.add('show'); const l=document.getElementById('gsList'); l.innerHTML=''; Object.keys(machines).forEach(id=>{ l.innerHTML+=`<div class="gs-item" data-id="${id}"><span style="font-size:0.8em;width:60px;">${id.substring(0,6)}</span><input class="gs-input-name" value="${machines[id].display_name||id}"><input class="gs-input-order" type="number" value="${machines[id].sort_order||999}"><button class="btn-icon-delete" onclick="askDelete('${id}')">🗑️</button></div>`; }); document.getElementById('globalSettingsModal').classList.add('show'); }
         function closeGlobalSettings(){ document.getElementById('globalSettingsModal').classList.remove('show'); updatePaused=false; document.getElementById('pauseIndicator').classList.remove('show'); render(); }
         function switchTab(tab){ document.querySelectorAll('.tab-content').forEach(d=>d.classList.remove('active')); document.querySelectorAll('.modal-tab').forEach(t=>t.classList.remove('active')); document.getElementById(`tab-${tab}`).classList.add('active'); event.target.classList.add('active'); }
 
         function saveGlobalSettings(){
             const u={}; document.querySelectorAll('.gs-item').forEach(i=>{ const id=i.getAttribute('data-id'); u[`machines/${id}/display_name`]=i.querySelector('.gs-input-name').value; u[`machines/${id}/sort_order`]=parseInt(i.querySelector('.gs-input-order').value)||999; });
-            
-            // Bildirim Ayarlarını Kaydet (Local Storage)
-            const notifData = {
-                enabled: document.getElementById('notif-enabled').classList.contains('on'),
-                start: document.getElementById('notif-start').value,
-                end: document.getElementById('notif-end').value,
-                copy: parseInt(document.getElementById('notif-copy').value) || 0,
-                percent: parseInt(document.getElementById('notif-percent').value) || 0,
-                time: parseInt(document.getElementById('notif-time').value) || 0,
-                meter: parseInt(document.getElementById('notif-meter').value) || 0
-            };
+            const notifData = { enabled: document.getElementById('notif-enabled').classList.contains('on'), start: document.getElementById('notif-start').value, end: document.getElementById('notif-end').value, copy: parseInt(document.getElementById('notif-copy').value)||0, percent: parseInt(document.getElementById('notif-percent').value)||0, time: parseInt(document.getElementById('notif-time').value)||0, meter: parseInt(document.getElementById('notif-meter').value)||0 };
             localStorage.setItem('notif_settings', JSON.stringify(notifData));
-            
             db.ref().update(u); closeGlobalSettings();
         }
 
@@ -360,61 +354,28 @@
             if(s.meter) document.getElementById('notif-meter').value = s.meter;
         }
 
-        function requestPermission() {
-            if (!("Notification" in window)) { alert("Tarayıcınız bildirimleri desteklemiyor!"); return; }
-            Notification.requestPermission().then(p => { if(p === "granted") new Notification("🔔 Bildirimler Açık!", { body: "Makine durumları takip ediliyor." }); });
-        }
+        function requestPermission() { if (!("Notification" in window)) { alert("Tarayıcınız bildirimleri desteklemiyor!"); return; } Notification.requestPermission().then(p => { if(p === "granted") new Notification("🔔 Bildirimler Açık!", { body: "Makine durumları takip ediliyor." }); }); }
 
         function checkNotifications() {
             const s = JSON.parse(localStorage.getItem('notif_settings') || '{}');
             if(!s.enabled) return;
-
-            // Saat Kontrolü
-            const now = new Date();
-            const start = new Date(); const [sh,sm] = (s.start || '08:30').split(':'); start.setHours(sh,sm,0);
-            const end = new Date(); const [eh,em] = (s.end || '18:30').split(':'); end.setHours(eh,em,0);
+            const now = new Date(); const start = new Date(); const [sh,sm] = (s.start || '08:30').split(':'); start.setHours(sh,sm,0); const end = new Date(); const [eh,em] = (s.end || '18:30').split(':'); end.setHours(eh,em,0);
             if(now < start || now > end) return;
 
             Object.values(machines).forEach(m => {
                 if(!isOnline(m) || !m.is_printing) return;
                 const name = m.display_name || 'Makine';
-                const id = m.machine_id || 'unknown'; // Benzersiz key için
-
-                // Kalan Kopya
-                if(s.copy > 0 && m.total_copies > 0) {
-                    const remaining = m.total_copies - m.current_copy;
-                    if(remaining <= s.copy && !notifiedState[id+'_copy']) {
-                        sendNotif(`📄 ${name} - Kopya Azaldı`, `${remaining} kopya kaldı!`);
-                        notifiedState[id+'_copy'] = true;
-                    } else if (remaining > s.copy) notifiedState[id+'_copy'] = false;
-                }
-
-                // Kalan Yüzde
-                if(s.percent > 0 && m.progress > 0) {
-                    const remaining = 100 - m.progress;
-                    if(remaining <= s.percent && !notifiedState[id+'_perc']) {
-                        sendNotif(`📊 ${name} - Bitiyor`, `%${m.progress.toFixed(1)} tamamlandı!`);
-                        notifiedState[id+'_perc'] = true;
-                    } else if (remaining > s.percent) notifiedState[id+'_perc'] = false;
-                }
-                
-                // Kalan Metre
-                if(s.meter > 0 && m.remaining_length_m > 0) {
-                    if(m.remaining_length_m <= s.meter && !notifiedState[id+'_met']) {
-                        sendNotif(`📏 ${name} - Metre Azaldı`, `${m.remaining_length_m.toFixed(1)} metre kaldı!`);
-                        notifiedState[id+'_met'] = true;
-                    } else if (m.remaining_length_m > s.meter) notifiedState[id+'_met'] = false;
-                }
+                const id = m.machine_id || 'unknown';
+                if(s.copy > 0 && m.total_copies > 0) { const rem = m.total_copies - m.current_copy; if(rem <= s.copy && !notifiedState[id+'_copy']) { sendNotif(`📄 ${name}`, `${rem} kopya kaldı!`); notifiedState[id+'_copy'] = true; } else if (rem > s.copy) notifiedState[id+'_copy'] = false; }
+                if(s.percent > 0 && m.progress > 0) { const rem = 100 - m.progress; if(rem <= s.percent && !notifiedState[id+'_perc']) { sendNotif(`📊 ${name}`, `%${m.progress.toFixed(1)} tamamlandı!`); notifiedState[id+'_perc'] = true; } else if (rem > s.percent) notifiedState[id+'_perc'] = false; }
+                if(s.meter > 0 && m.remaining_length_m > 0) { if(m.remaining_length_m <= s.meter && !notifiedState[id+'_met']) { sendNotif(`📏 ${name}`, `${m.remaining_length_m.toFixed(1)}m kaldı!`); notifiedState[id+'_met'] = true; } else if (m.remaining_length_m > s.meter) notifiedState[id+'_met'] = false; }
             });
         }
 
-        function sendNotif(title, body) {
-            if(Notification.permission === "granted") new Notification(title, { body: body, icon: 'https://cdn-icons-png.flaticon.com/512/3602/3602510.png' });
-        }
-
+        function sendNotif(title, body) { if(Notification.permission === "granted") new Notification(title, { body: body, icon: 'https://cdn-icons-png.flaticon.com/512/3602/3602510.png' }); }
         function askDelete(id){ deleteId=id; document.getElementById('deleteModal').classList.add('show'); }
         function closeModal(){ document.getElementById('deleteModal').classList.remove('show'); }
-        function confirmDelete(){ if(deleteId) db.ref(`machines/${deleteId}`).remove(); closeModal(); delete openSettings[deleteId]; }
+        function confirmDelete(){ if(deleteId) { db.ref(`machines/${deleteId}`).remove(); const el = document.querySelector(`.gs-item[data-id="${deleteId}"]`); if(el) el.remove(); } closeModal(); delete openSettings[deleteId]; }
     </script>
 </body>
 </html>
