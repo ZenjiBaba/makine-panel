@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>🖨️ Makine Kontrol</title>
+	<link rel="manifest" href="manifest.json">
     
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
@@ -207,8 +208,8 @@
                 <div class="notif-row"><span>📊 Kalan Yüzde Azalınca (%)</span><div><input type="number" class="notif-input" id="notif-percent" placeholder="5"></div></div>
                 <div class="notif-row"><span>⏳ Kalan Süre Azalınca (dk)</span><div><input type="number" class="notif-input" id="notif-time" placeholder="15"></div></div>
                 <div class="notif-row"><span>📏 Kalan Metre Azalınca (m)</span><div><input type="number" class="notif-input" id="notif-meter" placeholder="20"></div></div>
-                <button class="btn-confirm" style="width:100%; margin-top:10px;" onclick="requestPermission()">🔔 İzin İste & Test Gönder</button>
-				<button class="btn-test" style="width:100%; margin-top:5px; background:#6366f1;" onclick="testNotification()">🔔 Test Bildirimi Gönder</button>
+                <button class="btn-confirm" style="width:100%; margin-top:10px;" onclick="requestPermission()">🔔 İzin İste</button>
+				<button class="btn-confirm" style="width:100%; margin-top:5px; background:#6366f1;" onclick="testNotification()">🔔 Test Gönder</button>
             </div>
             <div class="modal-btns"><button class="btn-close" onclick="closeGlobalSettings()">İptal</button><button class="btn-confirm" onclick="saveGlobalSettings()">Kaydet & Çık</button></div>
         </div>
@@ -224,23 +225,15 @@
     </div>
 
     <script>
-        // FIREBASE AYARLARI
         const firebaseConfig = { apiKey: "AIzaSyByw1MrUACV0bphoLaw8BM7_RQj_x5_21o", authDomain: "makine-otomasyon-183ab.firebaseapp.com", databaseURL: "https://makine-otomasyon-183ab-default-rtdb.europe-west1.firebasedatabase.app", projectId: "makine-otomasyon-183ab" };
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.database();
         let machines = {}, currentUser = null, deleteId = null, openSettings = {}, updatePaused = false, editingId = null, notifiedState = {};
 
-        // --- SERVICE WORKER KURULUMU (ANDROID İÇİN) ---
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js').then(reg => {
-                console.log('Service Worker kayıtlı:', reg);
-            }).catch(err => {
-                console.log('Service Worker hatası:', err);
-            });
-        }
+        // SERVICE WORKER CHECK
+        if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
 
-        // --- AUTH ---
         function login() { auth.signInWithEmailAndPassword(document.getElementById('email').value, document.getElementById('password').value).catch(err => { document.getElementById('loginError').innerText = err.message; document.getElementById('loginError').style.display = 'block'; }); }
         function logout() { auth.signOut(); }
         auth.onAuthStateChanged(u => { if(u){ currentUser=u; document.getElementById('loginScreen').style.display='none'; document.getElementById('appContainer').style.display='block'; loadNotifSettings(); startListener(); } else { document.getElementById('loginScreen').style.display='flex'; document.getElementById('appContainer').style.display='none'; } });
@@ -289,13 +282,14 @@
             
             const remainingTime = m.remaining_time || '00:00:00';
             const remainingMeter = m.remaining_length_m ? m.remaining_length_m.toFixed(1) : '0.0';
-			
+
             // --- AUTO CLEAN STATÜSÜ ---
             let acText = 'Kapalı';
             if (s.auto_clean_time_enabled) acText = `⏱️ Her ${s.auto_clean_time_minutes}dk`;
-            else if (s.auto_clean_copy_enabled) acText = `📄 Her ${s.auto_clean_copy_interval} Baskıda`;
-            else if (s.auto_clean_pattern_enabled) acText = `🎨 Her ${s.auto_clean_pattern_interval} Desende`;
+            else if (s.auto_clean_copy_enabled) acText = `📄 Her ${s.auto_clean_copy_interval} Kopya`;
+            else if (s.auto_clean_pattern_enabled) acText = `🎨 Her ${s.auto_clean_pattern_interval} Desen`;
 
+            // Buton Kilitleri
             let dG = !online ? 'disabled' : '';
             let dP=dG, dPR=dG, dC=dG, dCh=dG, dCl=dG, dA=dG, dI=dG, dM=dG;
 
@@ -328,7 +322,6 @@
                     </div>
                     
                     <div class="stats-container">
-                        <!-- 1. Satır: Kopya | AutoClean -->
                         <div class="stat-row">
                             <div class="stat-group">
                                 <span class="stat-label">Kopya Durumu</span>
@@ -355,7 +348,7 @@
                                 <span class="stat-value">${(m.total_length_m||0).toFixed(1)} m</span>
                             </div>
                             <div class="stat-group right">
-                                <span class="stat-label">Tahmini Kalan</span>
+                                <span class="stat-label">Kalan Metre</span>
                                 <span class="stat-value highlight">${remainingMeter} m</span>
                             </div>
                         </div>
@@ -431,31 +424,35 @@
         function saveGlobalSettings(){ const u={}; document.querySelectorAll('.gs-item').forEach(i=>{ const id=i.getAttribute('data-id'); u[`machines/${id}/display_name`]=i.querySelector('.gs-input-name').value; u[`machines/${id}/sort_order`]=parseInt(i.querySelector('.gs-input-order').value)||999; }); const notifData = { enabled: document.getElementById('notif-enabled').classList.contains('on'), start: document.getElementById('notif-start').value, end: document.getElementById('notif-end').value, copy: parseInt(document.getElementById('notif-copy').value)||0, percent: parseInt(document.getElementById('notif-percent').value)||0, time: parseInt(document.getElementById('notif-time').value)||0, meter: parseInt(document.getElementById('notif-meter').value)||0 }; localStorage.setItem('notif_settings', JSON.stringify(notifData)); db.ref().update(u); closeGlobalSettings(); }
         function loadNotifSettings() { const s = JSON.parse(localStorage.getItem('notif_settings') || '{}'); if(s.enabled) document.getElementById('notif-enabled').classList.add('on'); if(s.start) document.getElementById('notif-start').value = s.start; if(s.end) document.getElementById('notif-end').value = s.end; if(s.copy) document.getElementById('notif-copy').value = s.copy; if(s.percent) document.getElementById('notif-percent').value = s.percent; if(s.time) document.getElementById('notif-time').value = s.time; if(s.meter) document.getElementById('notif-meter').value = s.meter; }
 
-        // --- GÜNCELLENMİŞ BİLDİRİM FONKSİYONLARI ---
+        // --- BİLDİRİM FONKSİYONLARI (GÜÇLENDİRİLMİŞ) ---
         function requestPermission() {
-            if (!("Notification" in window)) { alert("Tarayıcınız bildirimleri desteklemiyor!"); return; }
+            if (!("Notification" in window)) { alert("Tarayıcı desteklemiyor."); return; }
             Notification.requestPermission().then(p => { 
-                if (p === "granted") {
-                    new Notification("✅ İzin Verildi!", { body: "Bildirimler artık çalışacak." });
-                    // Service Worker Kaydı
+                if(p === "granted") {
+                    new Notification("✅ İzin Verildi!", { body: "Bildirimler aktif." });
+                    // Service Worker'ı manuel güncelle
                     if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
-                } else alert("İzin reddedildi.");
+                } else alert("İzin reddedildi. Tarayıcı ayarlarından site izinlerini kontrol edin.");
             });
         }
 
         function testNotification() {
             if (Notification.permission === "granted") {
                 const title = "🔔 Test Bildirimi";
-                const options = { body: "Sistem çalışıyor!", icon: 'https://cdn-icons-png.flaticon.com/512/2550/2550264.png' };
+                const options = { 
+                    body: "Sistem sorunsuz çalışıyor!", 
+                    icon: 'https://cdn-icons-png.flaticon.com/512/2550/2550264.png',
+                    vibrate: [200, 100, 200]
+                };
                 
-                // Android için Service Worker üzerinden gönder
+                // Android için SW üzerinden gönder (Daha kararlı)
                 if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
                     navigator.serviceWorker.ready.then(reg => reg.showNotification(title, options));
                 } else {
                     new Notification(title, options);
                 }
             } else {
-                alert("Önce izin isteyin!");
+                alert("Önce 'İzin İste' butonuna basın!");
                 requestPermission();
             }
         }
@@ -463,17 +460,24 @@
         function checkNotifications() {
             const s = JSON.parse(localStorage.getItem('notif_settings') || '{}');
             if(!s.enabled) return;
-            const now = new Date(); const start = new Date(); const [sh,sm] = (s.start || '08:30').split(':'); start.setHours(sh,sm,0); const end = new Date(); const [eh,em] = (s.end || '18:30').split(':'); end.setHours(eh,em,0);
-            if(now < start || now > end) return;
+            const now = new Date(); 
+            const currentMins = now.getHours() * 60 + now.getMinutes();
+            const [sh, sm] = (s.start || '08:30').split(':');
+            const startMins = parseInt(sh) * 60 + parseInt(sm);
+            const [eh, em] = (s.end || '18:30').split(':');
+            const endMins = parseInt(eh) * 60 + parseInt(em);
+
+            if (currentMins < startMins || currentMins > endMins) return;
 
             Object.values(machines).forEach(m => {
                 if(!isOnline(m) || !m.is_printing) return;
                 const name = m.display_name || 'Makine';
-                const id = m.machine_id || 'unknown';
+                const id = m.machine_id || 'u';
                 
                 if(s.copy > 0 && m.total_copies > 0) { const rem = m.total_copies - m.current_copy; if(rem <= s.copy && !notifiedState[id+'_copy']) { sendNotif(`📄 ${name}`, `${rem} kopya kaldı!`); notifiedState[id+'_copy'] = true; } else if (rem > s.copy) notifiedState[id+'_copy'] = false; }
                 if(s.percent > 0 && m.progress > 0) { const rem = 100 - m.progress; if(rem <= s.percent && !notifiedState[id+'_perc']) { sendNotif(`📊 ${name}`, `%${m.progress.toFixed(1)} tamamlandı!`); notifiedState[id+'_perc'] = true; } else if (rem > s.percent) notifiedState[id+'_perc'] = false; }
-                if(s.meter > 0 && m.remaining_length_m > 0) { if(m.remaining_length_m <= s.meter && !notifiedState[id+'_met']) { sendNotif(`📏 ${name}`, `${Number(m.remaining_length_m).toFixed(1)}m kaldı!`); notifiedState[id+'_met'] = true; } else if (m.remaining_length_m > s.meter) notifiedState[id+'_met'] = false; }
+                if(s.time > 0 && m.remaining_time) { const p = m.remaining_time.split(':'); if(p.length===3) { const rm = parseInt(p[0])*60 + parseInt(p[1]); if(rm <= s.time && rm > 0 && !notifiedState[id+'_time']) { sendNotif(`⏳ ${name}`, `${m.remaining_time} kaldı!`); notifiedState[id+'_time'] = true; } else if (rm > s.time) notifiedState[id+'_time'] = false; } }
+                if(s.meter > 0 && m.remaining_length_m > 0) { if(m.remaining_length_m <= s.meter && !notifiedState[id+'_met']) { sendNotif(`📏 ${name}`, `${m.remaining_length_m.toFixed(1)}m kaldı!`); notifiedState[id+'_met'] = true; } else if (m.remaining_length_m > s.meter) notifiedState[id+'_met'] = false; }
             });
         }
 
