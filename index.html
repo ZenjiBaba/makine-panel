@@ -457,103 +457,98 @@
             }
         }
 
-		// index.html içindeki checkNotifications fonksiyonunu bununla değiştirin:
-
 		function checkNotifications() {
+			// Ayarları al
 			const s = JSON.parse(localStorage.getItem('notif_settings') || '{}');
-			if (!s.enabled) return; // Bildirimler kapalıysa çık
+			if (!s.enabled) return;
 
-			// Zaman aralığı kontrolü (Gece bildirim gelmesin diye)
+			// Saat aralığı kontrolü (Gece bildirim gitmesin)
 			const now = new Date();
 			const currentMins = now.getHours() * 60 + now.getMinutes();
 			const [sh, sm] = (s.start || '08:30').split(':');
 			const startMins = parseInt(sh) * 60 + parseInt(sm);
 			const [eh, em] = (s.end || '18:30').split(':');
 			const endMins = parseInt(eh) * 60 + parseInt(em);
-
-			// Eğer şu anki saat, izin verilen aralıkta değilse çık
+			
+			// Eğer şu anki saat, ayarlanmış aralığın dışındaysa fonksiyondan çık
 			if (currentMins < startMins || currentMins > endMins) return;
 
 			Object.values(machines).forEach(m => {
-				// Makine çevrimdışı veya basmıyorsa bildirim gönderme
+				// Makine çevrimdışıysa veya basmıyorsa (printing değilse) atla
 				if (!isOnline(m) || !m.is_printing) return;
 
 				const name = m.display_name || 'Makine';
 				const id = m.machine_id || 'u';
 
 				// --- 1. KOPYA KONTROLÜ ---
-				// Gelen veriyi sayıya çevir
-				const totalCopies = parseInt(m.total_copies || 0);
-				const currentCopy = parseInt(m.current_copy || 0);
 				const setCopy = parseInt(s.copy || 0);
-				
-				if (setCopy > 0 && totalCopies > 0) {
-					const rem = totalCopies - currentCopy;
-					const notifKey = id + '_copy';
-					
-					// Eğer kalan kopya eşikten azsa VE daha önce bildirim gitmediyse
-					if (rem <= setCopy && !notifiedState[notifKey]) {
-						sendNotif(name, `${rem} kopya kaldı!`);
-						notifiedState[notifKey] = true; 
-					} 
-					// Eğer durum düzeldi (yeni iş başladı) ise bildirim kilidini aç
-					else if (rem > setCopy) {
-						notifiedState[notifKey] = false;
+				if (setCopy > 0) {
+					const total = parseInt(m.total_copies || 0);
+					const current = parseInt(m.current_copy || 0);
+					const remCopy = total - current;
+					const key = id + '_copy';
+
+					if (remCopy <= setCopy && remCopy >= 0 && !notifiedState[key]) {
+						sendNotif(name, `${remCopy} kopya kaldı!`);
+						notifiedState[key] = true;
+					} else if (remCopy > setCopy) {
+						notifiedState[key] = false;
 					}
 				}
 
-				// --- 2. YÜZDE KONTROLÜ ---
-				const progress = parseFloat(m.progress || 0);
-				const setPercent = parseInt(s.percent || 0);
-				
-				if (setPercent > 0 && progress > 0) {
-					const rem = 100 - progress; // Kalan yüzde
-					const notifKey = id + '_perc';
-
-					if (rem <= setPercent && !notifiedState[notifKey]) {
-						sendNotif(name, `%${progress.toFixed(1)} tamamlandı!`);
-						notifiedState[notifKey] = true;
-					} else if (rem > setPercent) {
-						notifiedState[notifKey] = false;
-					}
-				}
-
-				// --- 3. SÜRE KONTROLÜ (DK) ---
-				const setTime = parseInt(s.time || 0);
-				
-				if (setTime > 0 && m.remaining_time) {
-					const p = m.remaining_time.split(':');
-					// Python HH:MM:SS gönderiyor, bunu dakikaya çevirelim
-					if (p.length === 3) {
-						// Saat * 60 + Dakika
-						const remMins = parseInt(p[0]) * 60 + parseInt(p[1]);
-						const notifKey = id + '_time';
-
-						// remMins > 0 kontrolünü kaldırdık, çünkü son dakikada 0 olabilir.
-						if (remMins <= setTime && !notifiedState[notifKey]) {
-							sendNotif(name, `${remMins} dakika kaldı!`);
-							notifiedState[notifKey] = true;
-						} else if (remMins > setTime) {
-							notifiedState[notifKey] = false;
-						}
-					}
-				}
-
-				// --- 4. METRE KONTROLÜ ---
-				// Python'dan gelen metraj string olabilir, float'a çeviriyoruz
-				const remMeter = parseFloat(m.remaining_length_m || 0);
+				// --- 2. METRE KONTROLÜ (GÖRSELDEKİ VERİYE GÖRE) ---
 				const setMeter = parseInt(s.meter || 0);
-				const notifKey = id + '_met';
-
-				// Python metrajı okuyamazsa 0 gönderir. 
-				// Eğer 0 geliyorsa bildirim çalışmaz. Bunu düzeltmek için python tarafına bakılmalı.
-				// Ancak şimdilik logic hatasını düzeltelim:
-				if (setMeter > 0 && remMeter > 0) { 
-					if (remMeter <= setMeter && !notifiedState[notifKey]) {
+				// Ekranda "62.7" yazıyor, bunu ondalıklı sayıya çeviriyoruz (parseFloat)
+				const remMeter = parseFloat(m.remaining_length_m || 0);
+				
+				if (setMeter > 0 && remMeter > 0) {
+					const key = id + '_met';
+					// Örneğin: 62.7 <= 20 (Ayardaki değer)
+					if (remMeter <= setMeter && !notifiedState[key]) {
 						sendNotif(name, `${remMeter.toFixed(1)}m kaldı!`);
-						notifiedState[notifKey] = true;
+						notifiedState[key] = true;
 					} else if (remMeter > setMeter) {
-						notifiedState[notifKey] = false;
+						notifiedState[key] = false;
+					}
+				}
+
+				// --- 3. SÜRE KONTROLÜ (DAKİKA BAZLI) ---
+				const setTime = parseInt(s.time || 0);
+				// Ekranda "02:13:07" yazıyor
+				if (setTime > 0 && m.remaining_time) {
+					const parts = m.remaining_time.split(':'); // [02, 13, 07]
+					let remMinutes = 0;
+
+					if (parts.length === 3) {
+						// Saat * 60 + Dakika -> 2*60 + 13 = 133 dakika
+						remMinutes = (parseInt(parts[0]) * 60) + parseInt(parts[1]);
+					} else if (parts.length === 2) {
+						// Sadece Dakika:Saniye varsa -> Dakika
+						remMinutes = parseInt(parts[0]);
+					}
+
+					const key = id + '_time';
+					// Örneğin: 133 <= 10 (Ayardaki değer)
+					if (remMinutes <= setTime && remMinutes >= 0 && !notifiedState[key]) {
+						sendNotif(name, `${remMinutes} dakika kaldı!`);
+						notifiedState[key] = true;
+					} else if (remMinutes > setTime) {
+						notifiedState[key] = false;
+					}
+				}
+				
+				// --- 4. YÜZDE KONTROLÜ ---
+				const setPercent = parseInt(s.percent || 0);
+				const progress = parseFloat(m.progress || 0);
+				if (setPercent > 0 && progress > 0) {
+					const remPercent = 100 - progress;
+					const key = id + '_perc';
+					
+					if (remPercent <= setPercent && !notifiedState[key]) {
+						sendNotif(name, `%${progress.toFixed(1)} tamamlandı!`);
+						notifiedState[key] = true;
+					} else if (remPercent > setPercent) {
+						notifiedState[key] = false;
 					}
 				}
 			});
