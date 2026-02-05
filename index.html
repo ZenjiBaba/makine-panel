@@ -457,40 +457,107 @@
             }
         }
 
-        function checkNotifications() {
-            const s = JSON.parse(localStorage.getItem('notif_settings') || '{}');
-            if(!s.enabled) return;
-            const now = new Date(); 
-            const currentMins = now.getHours() * 60 + now.getMinutes();
-            const [sh, sm] = (s.start || '08:30').split(':');
-            const startMins = parseInt(sh) * 60 + parseInt(sm);
-            const [eh, em] = (s.end || '18:30').split(':');
-            const endMins = parseInt(eh) * 60 + parseInt(em);
+		// index.html içindeki checkNotifications fonksiyonunu bununla değiştirin:
 
-            if (currentMins < startMins || currentMins > endMins) return;
+		function checkNotifications() {
+			const s = JSON.parse(localStorage.getItem('notif_settings') || '{}');
+			if (!s.enabled) return; // Bildirimler kapalıysa çık
 
-            Object.values(machines).forEach(m => {
-                if(!isOnline(m) || !m.is_printing) return;
-                const name = m.display_name || 'Makine';
-                const id = m.machine_id || 'u';
-                
-                if(s.copy > 0 && m.total_copies > 0) { const rem = m.total_copies - m.current_copy; if(rem <= s.copy && !notifiedState[id+'_copy']) { sendNotif(`📄 ${name}`, `${rem} kopya kaldı!`); notifiedState[id+'_copy'] = true; } else if (rem > s.copy) notifiedState[id+'_copy'] = false; }
-                if(s.percent > 0 && m.progress > 0) { const rem = 100 - m.progress; if(rem <= s.percent && !notifiedState[id+'_perc']) { sendNotif(`📊 ${name}`, `%${m.progress.toFixed(1)} tamamlandı!`); notifiedState[id+'_perc'] = true; } else if (rem > s.percent) notifiedState[id+'_perc'] = false; }
-                if(s.time > 0 && m.remaining_time) { const p = m.remaining_time.split(':'); if(p.length===3) { const rm = parseInt(p[0])*60 + parseInt(p[1]); if(rm <= s.time && rm > 0 && !notifiedState[id+'_time']) { sendNotif(`⏳ ${name}`, `${m.remaining_time} kaldı!`); notifiedState[id+'_time'] = true; } else if (rm > s.time) notifiedState[id+'_time'] = false; } }
-                if(s.meter > 0 && m.remaining_length_m > 0) { if(m.remaining_length_m <= s.meter && !notifiedState[id+'_met']) { sendNotif(`📏 ${name}`, `${m.remaining_length_m.toFixed(1)}m kaldı!`); notifiedState[id+'_met'] = true; } else if (m.remaining_length_m > s.meter) notifiedState[id+'_met'] = false; }
-            });
-        }
+			// Zaman aralığı kontrolü (Gece bildirim gelmesin diye)
+			const now = new Date();
+			const currentMins = now.getHours() * 60 + now.getMinutes();
+			const [sh, sm] = (s.start || '08:30').split(':');
+			const startMins = parseInt(sh) * 60 + parseInt(sm);
+			const [eh, em] = (s.end || '18:30').split(':');
+			const endMins = parseInt(eh) * 60 + parseInt(em);
 
-        function sendNotif(title, body) {
-            if(Notification.permission === "granted") {
-                const opts = { body: body, icon: 'https://cdn-icons-png.flaticon.com/512/2550/2550264.png', vibrate: [200, 100, 200] };
-                if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-                    navigator.serviceWorker.ready.then(reg => reg.showNotification(title, opts));
-                } else {
-                    new Notification(title, opts);
-                }
-            }
-        }
+			// Eğer şu anki saat, izin verilen aralıkta değilse çık
+			if (currentMins < startMins || currentMins > endMins) return;
+
+			Object.values(machines).forEach(m => {
+				// Makine çevrimdışı veya basmıyorsa bildirim gönderme
+				if (!isOnline(m) || !m.is_printing) return;
+
+				const name = m.display_name || 'Makine';
+				const id = m.machine_id || 'u';
+
+				// --- 1. KOPYA KONTROLÜ ---
+				// Gelen veriyi sayıya çevir
+				const totalCopies = parseInt(m.total_copies || 0);
+				const currentCopy = parseInt(m.current_copy || 0);
+				const setCopy = parseInt(s.copy || 0);
+				
+				if (setCopy > 0 && totalCopies > 0) {
+					const rem = totalCopies - currentCopy;
+					const notifKey = id + '_copy';
+					
+					// Eğer kalan kopya eşikten azsa VE daha önce bildirim gitmediyse
+					if (rem <= setCopy && !notifiedState[notifKey]) {
+						sendNotif(name, `${rem} kopya kaldı!`);
+						notifiedState[notifKey] = true; 
+					} 
+					// Eğer durum düzeldi (yeni iş başladı) ise bildirim kilidini aç
+					else if (rem > setCopy) {
+						notifiedState[notifKey] = false;
+					}
+				}
+
+				// --- 2. YÜZDE KONTROLÜ ---
+				const progress = parseFloat(m.progress || 0);
+				const setPercent = parseInt(s.percent || 0);
+				
+				if (setPercent > 0 && progress > 0) {
+					const rem = 100 - progress; // Kalan yüzde
+					const notifKey = id + '_perc';
+
+					if (rem <= setPercent && !notifiedState[notifKey]) {
+						sendNotif(name, `%${progress.toFixed(1)} tamamlandı!`);
+						notifiedState[notifKey] = true;
+					} else if (rem > setPercent) {
+						notifiedState[notifKey] = false;
+					}
+				}
+
+				// --- 3. SÜRE KONTROLÜ (DK) ---
+				const setTime = parseInt(s.time || 0);
+				
+				if (setTime > 0 && m.remaining_time) {
+					const p = m.remaining_time.split(':');
+					// Python HH:MM:SS gönderiyor, bunu dakikaya çevirelim
+					if (p.length === 3) {
+						// Saat * 60 + Dakika
+						const remMins = parseInt(p[0]) * 60 + parseInt(p[1]);
+						const notifKey = id + '_time';
+
+						// remMins > 0 kontrolünü kaldırdık, çünkü son dakikada 0 olabilir.
+						if (remMins <= setTime && !notifiedState[notifKey]) {
+							sendNotif(name, `${remMins} dakika kaldı!`);
+							notifiedState[notifKey] = true;
+						} else if (remMins > setTime) {
+							notifiedState[notifKey] = false;
+						}
+					}
+				}
+
+				// --- 4. METRE KONTROLÜ ---
+				// Python'dan gelen metraj string olabilir, float'a çeviriyoruz
+				const remMeter = parseFloat(m.remaining_length_m || 0);
+				const setMeter = parseInt(s.meter || 0);
+				const notifKey = id + '_met';
+
+				// Python metrajı okuyamazsa 0 gönderir. 
+				// Eğer 0 geliyorsa bildirim çalışmaz. Bunu düzeltmek için python tarafına bakılmalı.
+				// Ancak şimdilik logic hatasını düzeltelim:
+				if (setMeter > 0 && remMeter > 0) { 
+					if (remMeter <= setMeter && !notifiedState[notifKey]) {
+						sendNotif(name, `${remMeter.toFixed(1)}m kaldı!`);
+						notifiedState[notifKey] = true;
+					} else if (remMeter > setMeter) {
+						notifiedState[notifKey] = false;
+					}
+				}
+			});
+		}
 
         function askDelete(id){ deleteId=id; document.getElementById('deleteModal').classList.add('show'); }
         function closeModal(){ document.getElementById('deleteModal').classList.remove('show'); }
