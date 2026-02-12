@@ -9,6 +9,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-messaging-compat.js"></script>
     
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -233,6 +234,35 @@
 
         // SERVICE WORKER CHECK
         if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+		
+		// --- FIREBASE MESSAGING (FCM) KURULUMU ---
+		const messaging = firebase.messaging();
+
+		function setupNotifications() {
+			Notification.requestPermission().then(permission => {
+				if (permission === 'granted') {
+					console.log('Bildirim izni verildi.');
+					return messaging.getToken({ vapidKey: "BI1EpQmXCto09Nbfm85a_vCsG-cjPbHhSLW4EPcUVYsSnBLvKPup9_qTRGoe3eY1sg0uk_87HCm05Jv-wd_3rBw" });
+					// NOT: Eğer VAPID key ayarlamayı bilmiyorsan, Firebase otomatik üretebilir ama genelde konsoldan almak gerekir.
+					// Şimdilik standart getToken() deneyelim, çalışmazsa VAPID key ekleriz.
+				}
+			}).then(token => {
+				if (token) {
+					// Token'ı veritabanına kaydet
+					db.ref('fcm_tokens/' + token.replace(/[.\#$\[\]]/g, '')).set({
+						token: token,
+						device: navigator.userAgent,
+						last_seen: Date.now()
+					});
+					console.log('Token kaydedildi:', token);
+				}
+			}).catch(err => {
+				console.log('Token alınamadı:', err);
+			});
+		}
+
+		// Uygulama açıldığında bildirim sistemini kur
+		setupNotifications();
 
         function login() { auth.signInWithEmailAndPassword(document.getElementById('email').value, document.getElementById('password').value).catch(err => { document.getElementById('loginError').innerText = err.message; document.getElementById('loginError').style.display = 'block'; }); }
         function logout() { auth.signOut(); }
@@ -441,7 +471,7 @@
                 const title = "🔔 Test Bildirimi";
                 const options = { 
                     body: "Sistem sorunsuz çalışıyor!", 
-                    icon: 'https://cdn-icons-png.flaticon.com/512/2550/2550264.png',
+                    icon: 'https://cdn-icons-png.flaticon.com/512/13309/13309211.png',
                     vibrate: [200, 100, 200]
                 };
                 
@@ -505,7 +535,8 @@
 					const key = id + '_met';
 					// Örneğin: 62.7 <= 20 (Ayardaki değer)
 					if (remMeter <= setMeter && !notifiedState[key]) {
-						sendNotif(name, `${remMeter.toFixed(1)}m kaldı!`);
+						// İSTEĞİNİZE GÖRE DÜZENLENMİŞ MESAJ:
+						sendNotif(name, `${name}'in ${remMeter.toFixed(1)}m si kaldı, bitmek üzere!`); 
 						notifiedState[key] = true;
 					} else if (remMeter > setMeter) {
 						notifiedState[key] = false;
@@ -557,6 +588,28 @@
         function askDelete(id){ deleteId=id; document.getElementById('deleteModal').classList.add('show'); }
         function closeModal(){ document.getElementById('deleteModal').classList.remove('show'); }
         function confirmDelete(){ if(deleteId) { db.ref(`machines/${deleteId}`).remove(); const el = document.querySelector(`.gs-item[data-id="${deleteId}"]`); if(el) el.remove(); } closeModal(); delete openSettings[deleteId]; }
+		// Bu fonksiyon index.html içinde script etiketinin bitimine yakın bir yere (diğer fonksiyonların yanına) eklenmeli
+		function sendNotif(title, body) {
+			// İzin yoksa gönderme
+			if (Notification.permission !== "granted") return;
+
+			const options = {
+				body: body,
+				icon: 'https://cdn-icons-png.flaticon.com/512/13309/13309211.png', // Manifestteki ikon
+				vibrate: [200, 100, 200], // Titreşim deseni
+				tag: 'machine-alert' // Üst üste binmeyi engeller
+			};
+
+			// PWA (Service Worker) üzerinden gönder (Android için daha kararlı)
+			if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+				navigator.serviceWorker.ready.then(function(registration) {
+					registration.showNotification(title, options);
+				});
+			} else {
+				// Standart bildirim (Masaüstü/Tarayıcı için)
+				new Notification(title, options);
+			}
+		}
     </script>
 </body>
 </html>
