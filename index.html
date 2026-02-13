@@ -547,16 +547,33 @@
 			const s = JSON.parse(localStorage.getItem('notif_settings') || '{}');
 			if (!s.enabled) return;
 
-			// Saat aralığı kontrolü (Gece bildirim gitmesin)
+			// --- SAAT ARALIĞI KONTROLÜ (GECE VARDİYASI UYUMLU) ---
 			const now = new Date();
 			const currentMins = now.getHours() * 60 + now.getMinutes();
+			
 			const [sh, sm] = (s.start || '08:30').split(':');
 			const startMins = parseInt(sh) * 60 + parseInt(sm);
 			const [eh, em] = (s.end || '18:30').split(':');
 			const endMins = parseInt(eh) * 60 + parseInt(em);
 			
-			// Eğer şu anki saat, ayarlanmış aralığın dışındaysa fonksiyondan çık
-			if (currentMins < startMins || currentMins > endMins) return;
+			let isInsideTimeRange = false;
+			
+			if (startMins <= endMins) {
+			    // Normal durum (Gündüz): 08:30 - 18:30 arası
+			    // Başlangıç ve bitiş aynı günün içinde.
+			    if (currentMins >= startMins && currentMins <= endMins) {
+			        isInsideTimeRange = true;
+			    }
+			} else {
+			    // Gece Vardiyası durumu: 20:30 - 08:30 arası
+			    // Saat 20:30'dan büyükse (gece yarısına kadar) VEYA 08:30'dan küçükse (sabah)
+			    if (currentMins >= startMins || currentMins <= endMins) {
+			        isInsideTimeRange = true;
+			    }
+			}
+			
+			// Eğer saat aralığının dışındaysak, bildirim gönderme ve çık
+			if (!isInsideTimeRange) return;
 
 			Object.values(machines).forEach(m => {
 				// Makine çevrimdışıysa veya basmıyorsa (printing değilse) atla
@@ -669,4 +686,5 @@
 </body>
 
 </html>
+
 
