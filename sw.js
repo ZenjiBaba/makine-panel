@@ -1,11 +1,15 @@
 importScripts('https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/9.22.0/firebase-messaging-compat.js');
 
+// index.html ile BİREBİR AYNI olmalı:
 firebase.initializeApp({
     apiKey: "AIzaSyByw1MrUACV0bphoLaw8BM7_RQj_x5_21o",
+    authDomain: "makine-otomasyon-183ab.firebaseapp.com", // Bunu ekledim
+    databaseURL: "https://makine-otomasyon-183ab-default-rtdb.europe-west1.firebasedatabase.app", // Bunu ekledim
     projectId: "makine-otomasyon-183ab",
-    messagingSenderId: "894852236387", // Firebase Console > Project Settings > Cloud Messaging > Sender ID
-    appId: "1:894852236387:web:da96448a4aaeabdc04e456" // Firebase Console > Project Settings > General > App ID
+    storageBucket: "makine-otomasyon-183ab.appspot.com", // Bunu ekledim
+    messagingSenderId: "894852236387", 
+    appId: "1:894852236387:web:da96448a4aaeabdc04e456"
 });
 
 const messaging = firebase.messaging();
@@ -16,7 +20,7 @@ messaging.onBackgroundMessage(function(payload) {
   const notificationTitle = payload.notification.title;
   const notificationOptions = {
     body: payload.notification.body,
-    icon: 'https://cdn-icons-png.flaticon.com/512/13309/13309211.png',
+    icon: 'https://cdn-icons-png.flaticon.com/512/13309/13309211.png', // Senin koyduğun yeni ikon, gayet güzel.
     vibrate: [200, 100, 200]
   };
 
@@ -53,4 +57,5 @@ self.addEventListener('notificationclick', function(event) {
             }
         })
     );
+
 });
