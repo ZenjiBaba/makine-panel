@@ -241,36 +241,83 @@
         let machines = {}, currentUser = null, deleteId = null, openSettings = {}, updatePaused = false, editingId = null, notifiedState = {};
 
         // SERVICE WORKER CHECK
-        if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
-		
-		// --- FIREBASE MESSAGING (FCM) KURULUMU ---
-		const messaging = firebase.messaging();
-
-		function setupNotifications() {
-			Notification.requestPermission().then(permission => {
-				if (permission === 'granted') {
-					console.log('Bildirim izni verildi.');
-					return messaging.getToken({ vapidKey: "BI1EpQmXCto09Nbfm85a_vCsG-cjPbHhSLW4EPcUVYsSnBLvKPup9_qTRGoe3eY1sg0uk_87HCm05Jv-wd_3rBw" });
-					// NOT: Eğer VAPID key ayarlamayı bilmiyorsan, Firebase otomatik üretebilir ama genelde konsoldan almak gerekir.
-					// Şimdilik standart getToken() deneyelim, çalışmazsa VAPID key ekleriz.
-				}
-			}).then(token => {
-				if (token) {
-					// Token'ı veritabanına kaydet
-					db.ref('fcm_tokens/' + token.replace(/[.\#$\[\]]/g, '')).set({
-						token: token,
-						device: navigator.userAgent,
-						last_seen: Date.now()
-					});
-					console.log('Token kaydedildi:', token);
-				}
-			}).catch(err => {
-				console.log('Token alınamadı:', err);
-			});
+		// 1. Önce Service Worker'ı kaydet
+		if ('serviceWorker' in navigator) {
+		    navigator.serviceWorker.register('sw.js')
+		    .then(function(registration) {
+		        console.log('Service Worker kayıt edildi, kapsam:', registration.scope);
+		        
+		        // 2. SW hazır olunca Bildirim kurulumunu başlat
+		        // Bunu auth.onAuthStateChanged içinde çağıracağız ama fonksiyonu burada hazırlayalım
+		    })
+		    .catch(function(err) {
+		        console.error('Service Worker hatası:', err);
+		    });
 		}
-
-		// Uygulama açıldığında bildirim sistemini kur
-		setupNotifications();
+		
+		// Bildirim Alma Fonksiyonu
+		function setupNotifications() {
+		    const messaging = firebase.messaging();
+		    
+		    console.log("Bildirim izni isteniyor...");
+		    
+		    Notification.requestPermission().then(permission => {
+		        if (permission === 'granted') {
+		            console.log("İzin verildi. Service Worker bekleniyor...");
+		            
+		            // 3. Service Worker'ın hazır olduğundan emin ol
+		            return navigator.serviceWorker.ready; 
+		        } else {
+		            throw new Error("Kullanıcı izin vermedi.");
+		        }
+		    }).then(registration => {
+		        // 4. Token isterken, bizim sw.js'i kullanması gerektiğini SÖYLÜYORUZ:
+		        return messaging.getToken({ 
+		            vapidKey: "BI1EpQmXCto09Nbfm85a_vCsG-cjPbHhSLW4EPcUVYsSnBLvKPup9_qTRGoe3eY1sg0uk_87HCm05Jv-wd_3rBw",
+		            serviceWorkerRegistration: registration // <--- İŞTE ÇÖZÜM BU SATIR!
+		        });
+		    }).then(token => {
+		        if (token) {
+		            console.log("TOKEN ALINDI:", token);
+		            
+		            // Veritabanına kaydet
+		            const user = firebase.auth().currentUser;
+		            if (user) {
+		                // Token'ı push ile ekleyelim ki her cihaz ayrı kaydedilsin
+		                firebase.database().ref('fcm_tokens').push({
+		                    token: token,
+		                    user: user.email,
+		                    userAgent: navigator.userAgent,
+		                    date: Date.now()
+		                });
+		                console.log("Token veritabanına yazıldı.");
+		            }
+		        } else {
+		            console.log("Token oluşturulamadı.");
+		        }
+		    }).catch(err => {
+		        console.error("Token alma hatası:", err);
+		    });
+		}
+		
+		// 5. Giriş yapıldığında sistemi tetikle
+		auth.onAuthStateChanged(u => { 
+		    if(u){ 
+		        currentUser=u;
+		        document.getElementById('loginScreen').style.display='none';
+		        document.getElementById('appContainer').style.display='block'; 
+		        
+		        loadNotifSettings(); 
+		        startListener(); 
+		        
+		        // BURADA ÇAĞIRIYORUZ
+		        setupNotifications();
+		        
+		    } else {
+		        document.getElementById('loginScreen').style.display='flex';
+		        document.getElementById('appContainer').style.display='none'; 
+		    } 
+		});
 
         function login() { auth.signInWithEmailAndPassword(document.getElementById('email').value, document.getElementById('password').value).catch(err => { document.getElementById('loginError').innerText = err.message; document.getElementById('loginError').style.display = 'block'; }); }
         function logout() { auth.signOut(); }
@@ -622,3 +669,4 @@
 </body>
 
 </html>
+
