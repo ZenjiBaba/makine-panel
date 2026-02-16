@@ -506,7 +506,40 @@
         function openGlobalSettings(){ updatePaused=true; document.getElementById('pauseIndicator').classList.add('show'); const l=document.getElementById('gsList'); l.innerHTML=''; Object.keys(machines).forEach(id=>{ l.innerHTML+=`<div class="gs-item" data-id="${id}"><span class="gs-id">${id.substring(0,6)}</span><input class="gs-input-name" value="${machines[id].display_name||id}"><input class="gs-input-order" type="number" value="${machines[id].sort_order||999}"><button class="btn-icon-delete" onclick="askDelete('${id}')">🗑️</button></div>`; }); document.getElementById('globalSettingsModal').classList.add('show'); }
         function closeGlobalSettings(){ document.getElementById('globalSettingsModal').classList.remove('show'); updatePaused=false; document.getElementById('pauseIndicator').classList.remove('show'); render(); }
         function switchTab(tab){ document.querySelectorAll('.tab-content').forEach(d=>d.classList.remove('active')); document.querySelectorAll('.modal-tab').forEach(t=>t.classList.remove('active')); document.getElementById(`tab-${tab}`).classList.add('active'); event.target.classList.add('active'); }
-        function saveGlobalSettings(){ const u={}; document.querySelectorAll('.gs-item').forEach(i=>{ const id=i.getAttribute('data-id'); u[`machines/${id}/display_name`]=i.querySelector('.gs-input-name').value; u[`machines/${id}/sort_order`]=parseInt(i.querySelector('.gs-input-order').value)||999; }); const notifData = { enabled: document.getElementById('notif-enabled').classList.contains('on'), start: document.getElementById('notif-start').value, end: document.getElementById('notif-end').value, copy: parseInt(document.getElementById('notif-copy').value)||0, percent: parseInt(document.getElementById('notif-percent').value)||0, time: parseInt(document.getElementById('notif-time').value)||0, meter: parseInt(document.getElementById('notif-meter').value)||0 }; localStorage.setItem('notif_settings', JSON.stringify(notifData)); db.ref().update(u); closeGlobalSettings(); }
+		function saveGlobalSettings(){ 
+			const u={}; 
+			// Makine isimlerini ve sıralamayı al
+			document.querySelectorAll('.gs-item').forEach(i=>{ 
+				const id=i.getAttribute('data-id'); 
+				u[`machines/${id}/display_name`]=i.querySelector('.gs-input-name').value; 
+				u[`machines/${id}/sort_order`]=parseInt(i.querySelector('.gs-input-order').value)||999; 
+			}); 
+			
+			// Bildirim ayarlarını al
+			const notifData = { 
+				enabled: document.getElementById('notif-enabled').classList.contains('on'), 
+				start: document.getElementById('notif-start').value, 
+				end: document.getElementById('notif-end').value, 
+				copy: parseInt(document.getElementById('notif-copy').value)||0, 
+				percent: parseInt(document.getElementById('notif-percent').value)||0, 
+				time: parseInt(document.getElementById('notif-time').value)||0, 
+				meter: parseInt(document.getElementById('notif-meter').value)||0 
+			}; 
+			
+			// Ayarları LocalStorage'a kaydet (Frontend kontrolü için)
+			localStorage.setItem('notif_settings', JSON.stringify(notifData)); 
+			
+			// Ayarları Firebase'e de kaydet (Python/Backend kontrolü için - Eğer Python kodunu güncellersen orası da okur)
+			db.ref('settings/notifications').set(notifData);
+			db.ref().update(u); 
+			
+			closeGlobalSettings(); 
+			
+			// Kullanıcıya bilgi ver
+			if(!notifData.enabled) {
+				console.log("Bildirimler tamamen kapatıldı.");
+			}
+		}
         function loadNotifSettings() { const s = JSON.parse(localStorage.getItem('notif_settings') || '{}'); if(s.enabled) document.getElementById('notif-enabled').classList.add('on'); if(s.start) document.getElementById('notif-start').value = s.start; if(s.end) document.getElementById('notif-end').value = s.end; if(s.copy) document.getElementById('notif-copy').value = s.copy; if(s.percent) document.getElementById('notif-percent').value = s.percent; if(s.time) document.getElementById('notif-time').value = s.time; if(s.meter) document.getElementById('notif-meter').value = s.meter; }
 
         // --- BİLDİRİM FONKSİYONLARI (GÜÇLENDİRİLMİŞ) ---
@@ -542,41 +575,49 @@
             }
         }
 
+		// --- BİLDİRİM KONTROL FONKSİYONU (GECE VARDİYASI DESTEKLİ) ---
 		function checkNotifications() {
-			// Ayarları al
+			// 1. Ayarları al
 			const s = JSON.parse(localStorage.getItem('notif_settings') || '{}');
-			if (!s.enabled) return;
+			
+			// 2. KESİN KAPATMA: Eğer switch kapalıysa HİÇBİR ŞEY yapma, direkt fonksiyondan çık.
+			if (!s.enabled) {
+				return; 
+			}
 
-			// --- SAAT ARALIĞI KONTROLÜ (GECE VARDİYASI UYUMLU) ---
+			// 3. SAAT MANTIĞI (Gece Vardiyası Düzeltmesi)
 			const now = new Date();
 			const currentMins = now.getHours() * 60 + now.getMinutes();
 			
 			const [sh, sm] = (s.start || '08:30').split(':');
 			const startMins = parseInt(sh) * 60 + parseInt(sm);
+			
 			const [eh, em] = (s.end || '18:30').split(':');
 			const endMins = parseInt(eh) * 60 + parseInt(em);
 			
-			let isInsideTimeRange = false;
-			
-			if (startMins <= endMins) {
-			    // Normal durum (Gündüz): 08:30 - 18:30 arası
-			    // Başlangıç ve bitiş aynı günün içinde.
-			    if (currentMins >= startMins && currentMins <= endMins) {
-			        isInsideTimeRange = true;
-			    }
-			} else {
-			    // Gece Vardiyası durumu: 20:30 - 08:30 arası
-			    // Saat 20:30'dan büyükse (gece yarısına kadar) VEYA 08:30'dan küçükse (sabah)
-			    if (currentMins >= startMins || currentMins <= endMins) {
-			        isInsideTimeRange = true;
-			    }
-			}
-			
-			// Eğer saat aralığının dışındaysak, bildirim gönderme ve çık
-			if (!isInsideTimeRange) return;
+			let isWorkingHours = false;
 
+			if (startMins < endMins) {
+				// NORMAL VARDİYA (Örn: 08:30 - 18:30)
+				// Şu anki saat bu iki değerin arasındaysa çalışır.
+				if (currentMins >= startMins && currentMins <= endMins) {
+					isWorkingHours = true;
+				}
+			} else {
+				// GECE VARDİYASI (Örn: 20:30 - 08:30)
+				// Başlangıç, bitişten büyükse gece yarısı geçiliyor demektir.
+				// Mantık: Ya akşam saatlerindeyizdir (Start'tan büyük) YA DA sabahın erken saatlerindeyizdir (End'den küçük).
+				if (currentMins >= startMins || currentMins <= endMins) {
+					isWorkingHours = true;
+				}
+			}
+
+			// Eğer mesai saati dışındaysak çık
+			if (!isWorkingHours) return;
+
+			// --- MAKİNE KONTROLLERİ ---
 			Object.values(machines).forEach(m => {
-				// Makine çevrimdışıysa veya basmıyorsa (printing değilse) atla
+				// Makine çevrimdışıysa veya basmıyorsa atla
 				if (!isOnline(m) || !m.is_printing) return;
 
 				const name = m.display_name || 'Makine';
@@ -598,40 +639,29 @@
 					}
 				}
 
-				// --- 2. METRE KONTROLÜ (GÖRSELDEKİ VERİYE GÖRE) ---
+				// --- 2. METRE KONTROLÜ ---
 				const setMeter = parseInt(s.meter || 0);
-				// Ekranda "62.7" yazıyor, bunu ondalıklı sayıya çeviriyoruz (parseFloat)
 				const remMeter = parseFloat(m.remaining_length_m || 0);
 				
 				if (setMeter > 0 && remMeter > 0) {
 					const key = id + '_met';
-					// Örneğin: 62.7 <= 20 (Ayardaki değer)
 					if (remMeter <= setMeter && !notifiedState[key]) {
-						// İSTEĞİNİZE GÖRE DÜZENLENMİŞ MESAJ:
-						sendNotif(name, `${name}'in ${remMeter.toFixed(1)}m si kaldı, bitmek üzere!`); 
+						sendNotif(name, `${name} | ${remMeter.toFixed(1)}m kaldı!`); 
 						notifiedState[key] = true;
 					} else if (remMeter > setMeter) {
 						notifiedState[key] = false;
 					}
 				}
 
-				// --- 3. SÜRE KONTROLÜ (DAKİKA BAZLI) ---
+				// --- 3. SÜRE KONTROLÜ ---
 				const setTime = parseInt(s.time || 0);
-				// Ekranda "02:13:07" yazıyor
 				if (setTime > 0 && m.remaining_time) {
-					const parts = m.remaining_time.split(':'); // [02, 13, 07]
+					const parts = m.remaining_time.split(':');
 					let remMinutes = 0;
-
-					if (parts.length === 3) {
-						// Saat * 60 + Dakika -> 2*60 + 13 = 133 dakika
-						remMinutes = (parseInt(parts[0]) * 60) + parseInt(parts[1]);
-					} else if (parts.length === 2) {
-						// Sadece Dakika:Saniye varsa -> Dakika
-						remMinutes = parseInt(parts[0]);
-					}
+					if (parts.length === 3) remMinutes = (parseInt(parts[0]) * 60) + parseInt(parts[1]);
+					else if (parts.length === 2) remMinutes = parseInt(parts[0]);
 
 					const key = id + '_time';
-					// Örneğin: 133 <= 10 (Ayardaki değer)
 					if (remMinutes <= setTime && remMinutes >= 0 && !notifiedState[key]) {
 						sendNotif(name, `${remMinutes} dakika kaldı!`);
 						notifiedState[key] = true;
@@ -646,7 +676,6 @@
 				if (setPercent > 0 && progress > 0) {
 					const remPercent = 100 - progress;
 					const key = id + '_perc';
-					
 					if (remPercent <= setPercent && !notifiedState[key]) {
 						sendNotif(name, `%${progress.toFixed(1)} tamamlandı!`);
 						notifiedState[key] = true;
@@ -686,5 +715,4 @@
 </body>
 
 </html>
-
 
