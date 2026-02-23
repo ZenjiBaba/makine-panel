@@ -4,24 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>🖨️ Makine Kontrol</title>
-	<link rel="manifest" href="manifest.json">
-    
+    <link rel="manifest" href="manifest.json">
+
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-	<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-messaging-compat.js"></script>
-    
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-messaging-compat.js"></script>
+
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f172a; min-height: 100vh; color: #fff; padding: 15px; }
 
-        /* GİRİŞ */
         .login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0f172a; display: flex; justify-content: center; align-items: center; z-index: 9999; }
-        .login-box { background: rgba(30, 41, 59, 0.8); padding: 40px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); width: 90%; max-width: 350px; text-align: center; }
+        .login-box { background: rgba(30,41,59,0.8); padding: 40px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); width: 90%; max-width: 350px; text-align: center; }
         .login-box input { width: 100%; padding: 15px; margin-bottom: 15px; border-radius: 10px; border: 1px solid #334155; background: #1e293b; color: white; }
         .login-box button { width: 100%; padding: 15px; border-radius: 10px; border: none; background: #3b82f6; color: white; font-weight: bold; cursor: pointer; }
 
-        /* HEADER */
         .app-container { display: none; max-width: 1200px; margin: 0 auto; }
         .header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: #1e293b; border-radius: 15px; margin-bottom: 25px; border: 1px solid #334155; }
         .header-title { font-size: 1.5em; font-weight: bold; }
@@ -30,55 +28,42 @@
         .header-btn { border: none; padding: 8px 15px; border-radius: 8px; color: white; cursor: pointer; font-size: 0.9em; font-weight: bold; }
         .btn-logout { background: #ef4444; }
         .btn-settings-top { background: #3b82f6; }
-        .pause-indicator { display: none; background: rgba(245, 158, 11, 0.2); color: #f59e0b; padding: 5px 15px; border-radius: 20px; font-size: 0.8em; margin-top: 8px; text-align: center; }
+        .pause-indicator { display: none; background: rgba(245,158,11,0.2); color: #f59e0b; padding: 5px 15px; border-radius: 20px; font-size: 0.8em; margin-top: 8px; text-align: center; }
         .pause-indicator.show { display: block; }
 
-        /* GRUPLAR */
         .printer-group { margin-bottom: 30px; }
         .group-header { font-size: 1.2em; font-weight: bold; padding: 10px 15px; border-radius: 10px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
-        .group-header.grando { background: linear-gradient(90deg, #172554, #1e3a8a); border-left: 5px solid #60a5fa; color: #bfdbfe; }
-        .group-header.trujet { background: linear-gradient(90deg, #451a03, #78350f); border-left: 5px solid #f59e0b; color: #fde68a; }
+        .group-header.grando { background: linear-gradient(90deg,#172554,#1e3a8a); border-left: 5px solid #60a5fa; color: #bfdbfe; }
+        .group-header.trujet { background: linear-gradient(90deg,#451a03,#78350f); border-left: 5px solid #f59e0b; color: #fde68a; }
 
-        /* KARTLAR */
-        .machines-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; }
+        .machines-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(350px,1fr)); gap: 20px; }
         .machine-card { border-radius: 15px; padding: 20px; transition: transform 0.2s; position: relative; overflow: hidden; }
-        
         .machine-card.grando { background: #172554; border: 1px solid #1e40af; }
         .machine-card.trujet { background: #451a03; border: 1px solid #92400e; }
-        
         .machine-card.offline { opacity: 0.7; filter: grayscale(0.8); }
         .machine-card.printing { box-shadow: 0 0 15px rgba(255,255,255,0.1); }
 
-        /* KART BAŞLIK */
         .machine-header { display: flex; justify-content: space-between; margin-bottom: 15px; align-items: flex-start; }
         .machine-title { display: flex; flex-direction: column; gap: 2px; width: 60%; }
-        
         .printer-badge { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 0.65em; font-weight: bold; text-transform: uppercase; width: fit-content; }
-        .printer-badge.grando { background: rgba(59, 130, 246, 0.2); color: #93c5fd; }
-        .printer-badge.trujet { background: rgba(245, 158, 11, 0.2); color: #fcd34d; }
-        
+        .printer-badge.grando { background: rgba(59,130,246,0.2); color: #93c5fd; }
+        .printer-badge.trujet { background: rgba(245,158,11,0.2); color: #fcd34d; }
         .machine-name-input { background: transparent; border: 1px solid transparent; color: inherit; font-size: 1.2em; font-weight: bold; width: 100%; padding: 0; }
         .machine-name-input:focus { border-bottom: 1px solid white; outline: none; }
 
-        .status-badge { 
-            padding: 6px 12px; border-radius: 20px; font-size: 0.85em; font-weight: bold; 
-            display: flex; align-items: center; gap: 6px; white-space: nowrap;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-        }
+        .status-badge { padding: 6px 12px; border-radius: 20px; font-size: 0.85em; font-weight: bold; display: flex; align-items: center; gap: 6px; white-space: nowrap; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
         .status-badge.printing { background: #22c55e; color: #052e16; }
-        .status-badge.paused { background: #f59e0b; color: #451a03; }
-        .status-badge.idle { background: #64748b; color: white; }
-        .status-badge.offline { background: #ef4444; color: white; }
+        .status-badge.paused   { background: #f59e0b; color: #451a03; }
+        .status-badge.idle     { background: #64748b; color: white; }
+        .status-badge.offline  { background: #ef4444; color: white; }
 
         .job-info { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 10px; margin-bottom: 15px; }
-        
         .progress-bar { height: 24px; background: rgba(255,255,255,0.1); border-radius: 12px; overflow: hidden; margin: 10px 0; position: relative; }
         .progress-fill { height: 100%; transition: width 0.5s ease; }
-        .progress-fill.grando { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
-        .progress-fill.trujet { background: linear-gradient(90deg, #d97706, #f59e0b); }
-        .progress-text { position: absolute; width: 100%; top:0; left:0; text-align: center; line-height: 24px; font-size: 0.8em; font-weight: bold; text-shadow: 0 0 3px rgba(0,0,0,0.8); z-index: 2; }
+        .progress-fill.grando { background: linear-gradient(90deg,#3b82f6,#60a5fa); }
+        .progress-fill.trujet { background: linear-gradient(90deg,#d97706,#f59e0b); }
+        .progress-text { position: absolute; width: 100%; top:0; left:0; text-align: center; line-height: 24px; font-size: 0.8em; font-weight: bold; text-shadow: 0 0 3px rgba(0,0,0,0.8); z-index:2; }
 
-        /* İSTATİSTİKLER */
         .stats-container { display: flex; flex-direction: column; gap: 8px; font-size: 0.9em; margin-top: 10px; }
         .stat-row { display: flex; justify-content: space-between; align-items: center; padding-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .stat-row:last-child { border-bottom: none; }
@@ -86,66 +71,77 @@
         .stat-group.right { text-align: right; }
         .stat-label { font-size: 0.75em; opacity: 0.7; text-transform: uppercase; letter-spacing: 0.5px; }
         .stat-value { font-weight: bold; font-size: 1.05em; }
-        .stat-value.highlight { color: #fbbf24; }
-        .stat-value.clean-info { color: #a78bfa; font-size: 0.95em; } /* Mor renk */
+        .stat-value.highlight  { color: #fbbf24; }
+        .stat-value.clean-info { color: #a78bfa; font-size: 0.95em; }
 
-        /* BUTONLAR */
+        /* KONTROL BUTONLARI */
         .control-wrapper { display: flex; flex-direction: column; gap: 8px; margin-top: 15px; }
-        .btn-row-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-        .btn-row-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
-        
-        .btn { 
-            border: none; padding: 10px 5px; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; 
-            display: flex; flex-direction: column; align-items: center; justify-content: center; 
-            font-size: 0.8em; gap: 3px; min-height: 50px; 
+        .btn-row-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
+        .btn-row-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 6px; }
+        .btn {
+            border: none; padding: 10px 5px; border-radius: 8px; color: white; font-weight: bold; cursor: pointer;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            font-size: 0.8em; gap: 3px; min-height: 50px;
+            -webkit-user-select: none; user-select: none;
+            -webkit-touch-callout: none; touch-action: manipulation;
         }
         .btn-row-4 .btn { font-size: 0.7em; padding: 8px 2px; }
         .btn:disabled { opacity: 0.2; cursor: not-allowed; filter: grayscale(1); }
         .btn:active { transform: scale(0.96); }
 
-        .btn-print { background: #22c55e; color: #052e16; }
-        .btn-pause { background: #f59e0b; color: #451a03; }
+        .btn-print  { background: #22c55e; color: #052e16; }
+        .btn-pause  { background: #f59e0b; color: #451a03; }
         .btn-cancel { background: #ef4444; }
-        .btn-check { background: #10b981; }
-        .btn-clean { background: #8b5cf6; }
-        .btn-auto  { background: linear-gradient(135deg, #6366f1, #4f46e5); }
-        .btn-load  { background: #06b6d4; }
+        .btn-check  { background: #10b981; }
+        .btn-clean  { background: #8b5cf6; }
+        .btn-auto   { background: linear-gradient(135deg,#6366f1,#4f46e5); }
+        .btn-load   { background: #06b6d4; }
 
-        .move-panel { background: rgba(0,0,0,0.2); margin-top: 15px; padding: 10px; border-radius: 10px; display: flex; justify-content: center; }
-        .move-grid { display: grid; grid-template-columns: repeat(3, 50px); grid-template-rows: repeat(2, 40px); gap: 5px; }
-        .btn-move { background: #334155; border: none; border-radius: 8px; color: white; font-size: 1.2em; cursor: pointer; }
-        .btn-move:hover { background: #475569; }
-        .btn-move:active { background: #3b82f6; }
+        /* HAREKET PANELİ — basılı tutma / metin seçimi korumalı */
+        .move-panel {
+            background: rgba(0,0,0,0.2); margin-top: 15px; padding: 12px;
+            border-radius: 10px; display: flex; justify-content: center;
+            -webkit-user-select: none; user-select: none;
+            -webkit-touch-callout: none;
+        }
+        .move-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 52px);
+            grid-template-rows: repeat(3, 44px);
+            gap: 6px;
+        }
+        .btn-move {
+            background: #334155; border: none; border-radius: 8px;
+            color: white; font-size: 1.3em; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            -webkit-user-select: none; user-select: none;
+            -webkit-touch-callout: none; touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .btn-move:hover  { background: #475569; }
+        .btn-move:active { background: #3b82f6; transform: scale(0.94); }
         .btn-move:disabled { opacity: 0.2; cursor: not-allowed; }
 
-        /* KART İÇİ AYARLAR - MODERN UI */
+        /* AYARLAR */
         .settings-section { background: rgba(0,0,0,0.3); border-radius: 12px; padding: 15px; margin-top: 15px; }
-        .settings-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        .settings-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; -webkit-user-select: none; user-select: none; }
         .settings-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
         .settings-content.open { max-height: 800px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); }
-        
         .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .setting-row:last-child { border-bottom: none; }
-        
         .setting-label { font-size: 0.9em; color: #cbd5e1; }
         .setting-controls { display: flex; align-items: center; gap: 5px; }
-        
-        /* Modern Input */
-        .setting-input {
-            width: 50px; padding: 6px; background: #334155; border: 1px solid #475569;
-            color: white; border-radius: 5px; text-align: center; font-weight: bold;
-        }
+        .setting-input { width: 50px; padding: 6px; background: #334155; border: 1px solid #475569; color: white; border-radius: 5px; text-align: center; font-weight: bold; }
         .setting-input:focus { border-color: #3b82f6; outline: none; }
-
-        .toggle-switch { position: relative; width: 40px; height: 22px; background: #475569; border-radius: 11px; cursor: pointer; transition: 0.3s; }
+        .toggle-switch { position: relative; width: 40px; height: 22px; background: #475569; border-radius: 11px; cursor: pointer; transition: 0.3s; -webkit-user-select: none; user-select: none; }
         .toggle-switch.on { background: #22c55e; }
         .toggle-switch::after { content: ''; position: absolute; width: 18px; height: 18px; background: white; border-radius: 50%; top: 2px; left: 2px; transition: 0.3s; }
         .toggle-switch.on::after { left: 20px; }
-
         .save-btn { width: 100%; padding: 12px; background: #22c55e; border: none; border-radius: 8px; color: white; font-weight: bold; margin-top: 15px; cursor: pointer; font-size: 0.9em; }
-        
+        .save-btn.saved { background: #16a34a; }
+
         /* MODALLAR */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; }
+        .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.8); z-index:1000; justify-content: center; align-items: center; }
         .modal.show { display: flex; }
         .modal-content { background: #1e293b; padding: 25px; border-radius: 15px; width: 95%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
         .modal-tabs { display: flex; gap: 10px; margin-bottom: 15px; border-bottom: 1px solid #334155; padding-bottom: 10px; }
@@ -153,40 +149,44 @@
         .modal-tab.active { background: #3b82f6; color: white; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
-
         .gs-item { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); }
         .gs-id { font-size: 0.8em; color: #94a3b8; width: 60px; }
-        .gs-input-name { flex: 1; padding: 8px; background: #334155; border: 1px solid #475569; color: white; border-radius: 5px; }
+        .gs-input-name  { flex: 1; padding: 8px; background: #334155; border: 1px solid #475569; color: white; border-radius: 5px; }
         .gs-input-order { width: 50px; padding: 8px; background: #334155; border: 1px solid #475569; color: white; border-radius: 5px; text-align: center; }
         .btn-icon-delete { background: #ef4444; color: white; border: none; border-radius: 5px; width: 35px; height: 35px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.2em; }
-
         .notif-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         .notif-input { width: 60px; padding: 5px; background: #334155; border: 1px solid #475569; color: white; border-radius: 5px; text-align: center; }
         .time-range { display: flex; align-items: center; gap: 5px; }
-
         .modal-btns { display: flex; gap: 10px; margin-top: 20px; }
         .modal-btns button { flex: 1; padding: 10px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
         .btn-confirm { background: #22c55e; color: white; }
-        .btn-delete { background: #ef4444; color: white; }
-        .btn-close { background: #475569; color: white; }
-        
+        .btn-delete  { background: #ef4444; color: white; }
+        .btn-close   { background: #475569; color: white; }
         #deleteModal { z-index: 2000; }
     </style>
 </head>
 <body>
+
     <div class="login-screen" id="loginScreen">
         <div class="login-box">
             <h1>🖨️</h1>
-            <input type="email" id="email" placeholder="E-posta"><input type="password" id="password" placeholder="Şifre">
+            <input type="email"    id="email"    placeholder="E-posta">
+            <input type="password" id="password" placeholder="Şifre">
             <button onclick="login()">Giriş Yap</button>
-            <p id="loginError" style="color:#ef4444; display:none; margin-top:10px;"></p>
+            <p id="loginError" style="color:#ef4444;display:none;margin-top:10px;"></p>
         </div>
     </div>
 
     <div class="app-container" id="appContainer">
         <div class="header">
-            <div><div class="header-title">🖨️ Kontrol Paneli</div><div id="statusText" class="header-status">Bağlanıyor...</div></div>
-            <div class="header-btns"><button class="header-btn btn-settings-top" onclick="openGlobalSettings()">⚙️ Yönet</button><button class="header-btn btn-logout" onclick="logout()">Çıkış</button></div>
+            <div>
+                <div class="header-title">🖨️ Kontrol Paneli</div>
+                <div id="statusText" class="header-status">Bağlanıyor...</div>
+            </div>
+            <div class="header-btns">
+                <button class="header-btn btn-settings-top" onclick="openGlobalSettings()">⚙️ Yönet</button>
+                <button class="header-btn btn-logout"       onclick="logout()">Çıkış</button>
+            </div>
         </div>
         <div class="pause-indicator" id="pauseIndicator">⏸️ Güncelleme duraklatıldı - Ayarlar açık</div>
         <div id="content"></div>
@@ -196,216 +196,254 @@
     <div class="modal" id="globalSettingsModal">
         <div class="modal-content">
             <div class="modal-tabs">
-                <div class="modal-tab active" onclick="switchTab('machines')">Makineler & Sıralama</div>
-                <div class="modal-tab" onclick="switchTab('notifications')">Bildirimler 🔔</div>
+                <div class="modal-tab active" onclick="switchTab('machines',event)">Makineler & Sıralama</div>
+                <div class="modal-tab"        onclick="switchTab('notifications',event)">Bildirimler 🔔</div>
             </div>
-            <div id="tab-machines" class="tab-content active"><div id="gsList"></div></div>
+            <div id="tab-machines"      class="tab-content active"><div id="gsList"></div></div>
             <div id="tab-notifications" class="tab-content">
-                <div style="background:rgba(255,255,255,0.05); padding:15px; border-radius:10px; margin-bottom:15px;">
+                <div style="background:rgba(255,255,255,0.05);padding:15px;border-radius:10px;margin-bottom:15px;">
                     <div class="notif-row"><span>🔔 Bildirimleri Aç</span><div class="toggle-switch" id="notif-enabled" onclick="this.classList.toggle('on')"></div></div>
-                    <div class="notif-row"><span>⏰ Saat Aralığı</span><div class="time-range"><input type="time" class="notif-input" id="notif-start" value="08:30" style="width:auto;"> - <input type="time" class="notif-input" id="notif-end" value="18:30" style="width:auto;"></div></div>
+                    <div class="notif-row">
+                        <span>⏰ Saat Aralığı</span>
+                        <div class="time-range">
+                            <input type="time" class="notif-input" id="notif-start" value="08:30" style="width:auto;">
+                            <span> - </span>
+                            <input type="time" class="notif-input" id="notif-end" value="18:30" style="width:auto;">
+                        </div>
+                    </div>
                 </div>
-                <div class="notif-row"><span>📄 Kalan Kopya Azalınca</span><div><input type="number" class="notif-input" id="notif-copy" placeholder="10"></div></div>
-                <div class="notif-row"><span>📊 Kalan Yüzde Azalınca (%)</span><div><input type="number" class="notif-input" id="notif-percent" placeholder="5"></div></div>
-                <div class="notif-row"><span>⏳ Kalan Süre Azalınca (dk)</span><div><input type="number" class="notif-input" id="notif-time" placeholder="15"></div></div>
-                <div class="notif-row"><span>📏 Kalan Metre Azalınca (m)</span><div><input type="number" class="notif-input" id="notif-meter" placeholder="20"></div></div>
-                <button class="btn-confirm" style="width:100%; margin-top:10px;" onclick="requestPermission()">🔔 İzin İste</button>
-				<button class="btn-confirm" style="width:100%; margin-top:5px; background:#6366f1;" onclick="testNotification()">🔔 Test Gönder</button>
+                <p style="font-size:0.8em;color:#94a3b8;margin-bottom:10px;">0 = bu türde bildirim gönderme</p>
+                <div class="notif-row"><span>📄 Kalan Kopya Azalınca</span>  <input type="number" class="notif-input" id="notif-copy"    min="0" placeholder="0"></div>
+                <div class="notif-row"><span>📊 Kalan Yüzde Azalınca (%)</span><input type="number" class="notif-input" id="notif-percent" min="0" placeholder="0"></div>
+                <div class="notif-row"><span>⏳ Kalan Süre Azalınca (dk)</span><input type="number" class="notif-input" id="notif-time"    min="0" placeholder="0"></div>
+                <div class="notif-row"><span>📏 Kalan Metre Azalınca (m)</span><input type="number" class="notif-input" id="notif-meter"   min="0" placeholder="0"></div>
+                <button class="btn-confirm" style="width:100%;margin-top:10px;" onclick="requestPermission()">🔔 Bildirim İzni İste</button>
+                <button class="btn-confirm" style="width:100%;margin-top:5px;background:#6366f1;" onclick="testNotification()">🔔 Test Gönder</button>
             </div>
-            <div class="modal-btns"><button class="btn-close" onclick="closeGlobalSettings()">İptal</button><button class="btn-confirm" onclick="saveGlobalSettings()">Kaydet & Çık</button></div>
+            <div class="modal-btns">
+                <button class="btn-close"   onclick="closeGlobalSettings()">İptal</button>
+                <button class="btn-confirm" onclick="saveGlobalSettings()">Kaydet & Çık</button>
+            </div>
         </div>
     </div>
 
     <!-- SİLME ONAY MODALI -->
     <div class="modal" id="deleteModal">
-        <div class="modal-content" style="border: 1px solid #ef4444;">
+        <div class="modal-content" style="border:1px solid #ef4444;">
             <h3 style="color:#ef4444;">⚠️ Makineyi Sil?</h3>
             <p>Bu makine listeden tamamen kaldırılacak.</p>
-            <div class="modal-btns"><button class="btn-close" onclick="closeModal()">Vazgeç</button><button class="btn-delete" onclick="confirmDelete()">Evet, Sil</button></div>
+            <div class="modal-btns">
+                <button class="btn-close"  onclick="closeModal()">Vazgeç</button>
+                <button class="btn-delete" onclick="confirmDelete()">Evet, Sil</button>
+            </div>
         </div>
     </div>
 
     <script>
-		const firebaseConfig = {
-		  apiKey: "AIzaSyByw1MrUACV0bphoLaw8BM7_RQj_x5_21o",
-		  authDomain: "makine-otomasyon-183ab.firebaseapp.com",
-		  databaseURL: "https://makine-otomasyon-183ab-default-rtdb.europe-west1.firebasedatabase.app",
-		  projectId: "makine-otomasyon-183ab",
-		  storageBucket: "makine-otomasyon-183ab.appspot.com",
-		  messagingSenderId: "894852236387",  // Senin paylaştığın koddan aldım (Sayısal kısım)
-		  appId: "1:894852236387:web:da96448a4aaeabdc04e456" // Senin paylaştığın kodun tamamı
-		};
+        const firebaseConfig = {
+            apiKey:            "AIzaSyByw1MrUACV0bphoLaw8BM7_RQj_x5_21o",
+            authDomain:        "makine-otomasyon-183ab.firebaseapp.com",
+            databaseURL:       "https://makine-otomasyon-183ab-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId:         "makine-otomasyon-183ab",
+            storageBucket:     "makine-otomasyon-183ab.appspot.com",
+            messagingSenderId: "894852236387",
+            appId:             "1:894852236387:web:da96448a4aaeabdc04e456"
+        };
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
-        const db = firebase.database();
-        let machines = {}, currentUser = null, deleteId = null, openSettings = {}, updatePaused = false, editingId = null, notifiedState = {};
+        const db   = firebase.database();
 
-        // SERVICE WORKER CHECK
-		// 1. Önce Service Worker'ı kaydet
-		if ('serviceWorker' in navigator) {
-		    navigator.serviceWorker.register('sw.js')
-		    .then(function(registration) {
-		        console.log('Service Worker kayıt edildi, kapsam:', registration.scope);
-		        
-		        // 2. SW hazır olunca Bildirim kurulumunu başlat
-		        // Bunu auth.onAuthStateChanged içinde çağıracağız ama fonksiyonu burada hazırlayalım
-		    })
-		    .catch(function(err) {
-		        console.error('Service Worker hatası:', err);
-		    });
-		}
-		
-		// Bildirim Alma Fonksiyonu
-		function setupNotifications() {
-		    const messaging = firebase.messaging();
-		    
-		    console.log("Bildirim izni isteniyor...");
-		    
-		    Notification.requestPermission().then(permission => {
-		        if (permission === 'granted') {
-		            console.log("İzin verildi. Service Worker bekleniyor...");
-		            
-		            // 3. Service Worker'ın hazır olduğundan emin ol
-		            return navigator.serviceWorker.ready; 
-		        } else {
-		            throw new Error("Kullanıcı izin vermedi.");
-		        }
-		    }).then(registration => {
-		        // 4. Token isterken, bizim sw.js'i kullanması gerektiğini SÖYLÜYORUZ:
-		        return messaging.getToken({ 
-		            vapidKey: "BI1EpQmXCto09Nbfm85a_vCsG-cjPbHhSLW4EPcUVYsSnBLvKPup9_qTRGoe3eY1sg0uk_87HCm05Jv-wd_3rBw",
-		            serviceWorkerRegistration: registration // <--- İŞTE ÇÖZÜM BU SATIR!
-		        });
-		    }).then(token => {
-		        if (token) {
-		            console.log("TOKEN ALINDI:", token);
-		            
-		            // Veritabanına kaydet
-		            const user = firebase.auth().currentUser;
-		            if (user) {
-		                // Token'ı push ile ekleyelim ki her cihaz ayrı kaydedilsin
-		                firebase.database().ref('fcm_tokens').push({
-		                    token: token,
-		                    user: user.email,
-		                    userAgent: navigator.userAgent,
-		                    date: Date.now()
-		                });
-		                console.log("Token veritabanına yazıldı.");
-		            }
-		        } else {
-		            console.log("Token oluşturulamadı.");
-		        }
-		    }).catch(err => {
-		        console.error("Token alma hatası:", err);
-		    });
-		}
-		
-		// 5. Giriş yapıldığında sistemi tetikle
-		auth.onAuthStateChanged(u => { 
-		    if(u){ 
-		        currentUser=u;
-		        document.getElementById('loginScreen').style.display='none';
-		        document.getElementById('appContainer').style.display='block'; 
-		        
-		        loadNotifSettings(); 
-		        startListener(); 
-		        
-		        // BURADA ÇAĞIRIYORUZ
-		        setupNotifications();
-		        
-		    } else {
-		        document.getElementById('loginScreen').style.display='flex';
-		        document.getElementById('appContainer').style.display='none'; 
-		    } 
-		});
+        let machines      = {};
+        let currentUser   = null;
+        let deleteId      = null;
+        let openSettings  = {};
+        let updatePaused  = false;
+        let editingId     = null;
+        let notifiedState = {};
 
-        function login() { auth.signInWithEmailAndPassword(document.getElementById('email').value, document.getElementById('password').value).catch(err => { document.getElementById('loginError').innerText = err.message; document.getElementById('loginError').style.display = 'block'; }); }
+        // Sayfa açılışında sahte bildirim önleme:
+        // İlk 8 saniye checkNotifications'tan gelen bildirimler atlanır.
+        let notifReady    = false;
+        setTimeout(() => { notifReady = true; }, 8000);
+
+        // =========================================================
+        // SERVICE WORKER
+        // =========================================================
+
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js')
+                .then(r => console.log('SW kayıt:', r.scope))
+                .catch(e => console.error('SW hata:', e));
+        }
+
+        function setupNotifications() {
+            if (!("Notification" in window)) return;
+            if (Notification.permission !== 'granted') return;
+
+            const messaging = firebase.messaging();
+            navigator.serviceWorker.ready.then(reg => {
+                return messaging.getToken({
+                    vapidKey: "BI1EpQmXCto09Nbfm85a_vCsG-cjPbHhSLW4EPcUVYsSnBLvKPup9_qTRGoe3eY1sg0uk_87HCm05Jv-wd_3rBw",
+                    serviceWorkerRegistration: reg
+                });
+            }).then(token => {
+                if (token) {
+                    const user = firebase.auth().currentUser;
+                    if (user) {
+                        firebase.database().ref('fcm_tokens').push({
+                            token, user: user.email, userAgent: navigator.userAgent, date: Date.now()
+                        });
+                    }
+                }
+            }).catch(e => console.warn("Token hatası:", e));
+        }
+
+        // =========================================================
+        // AUTH
+        // =========================================================
+
+        auth.onAuthStateChanged(u => {
+            if (u) {
+                currentUser = u;
+                document.getElementById('loginScreen').style.display  = 'none';
+                document.getElementById('appContainer').style.display = 'block';
+                loadNotifSettings();
+                startListener();
+                setupNotifications();
+            } else {
+                document.getElementById('loginScreen').style.display  = 'flex';
+                document.getElementById('appContainer').style.display = 'none';
+            }
+        });
+
+        function login() {
+            auth.signInWithEmailAndPassword(
+                document.getElementById('email').value,
+                document.getElementById('password').value
+            ).catch(err => {
+                document.getElementById('loginError').innerText = err.message;
+                document.getElementById('loginError').style.display = 'block';
+            });
+        }
         function logout() { auth.signOut(); }
-        auth.onAuthStateChanged(u => { if(u){ currentUser=u; document.getElementById('loginScreen').style.display='none'; document.getElementById('appContainer').style.display='block'; loadNotifSettings(); startListener(); } else { document.getElementById('loginScreen').style.display='flex'; document.getElementById('appContainer').style.display='none'; } });
 
-        function startListener() { db.ref('machines').on('value', snap => { if(!editingId && !updatePaused) { machines = snap.val() || {}; render(); checkNotifications(); } }); }
+        // =========================================================
+        // VERİ DİNLEYİCİ
+        // =========================================================
+
+        function startListener() {
+            db.ref('machines').on('value', snap => {
+                if (!editingId && !updatePaused) {
+                    machines = snap.val() || {};
+                    render();
+                    checkNotifications();
+                }
+            });
+        }
+
+        // =========================================================
+        // RENDER
+        // =========================================================
 
         function render() {
-            const content = document.getElementById('content'); content.innerHTML = '';
+            const content = document.getElementById('content');
+            content.innerHTML = '';
             const ids = Object.keys(machines);
-            document.getElementById('statusText').innerText = `${ids.filter(id => isOnline(machines[id])).length} / ${ids.length} makine çevrimiçi`;
-            const groups = { grando: [], trujet: [], unknown: [] };
-            
+            document.getElementById('statusText').innerText =
+                `${ids.filter(id => isOnline(machines[id])).length} / ${ids.length} makine çevrimiçi`;
+
+            const groups = { grando:[], trujet:[], unknown:[] };
             ids.sort((a,b) => {
                 const mA = machines[a], mB = machines[b];
                 const onA = isOnline(mA), onB = isOnline(mB);
-                if(onA && !onB) return -1; if(!onA && onB) return 1;
-                const oA = mA.sort_order || 999, oB = mB.sort_order || 999;
-                if(oA !== oB) return oA - oB;
+                if (onA && !onB) return -1; if (!onA && onB) return 1;
+                const oA = mA.sort_order||999, oB = mB.sort_order||999;
+                if (oA !== oB) return oA-oB;
                 return a.localeCompare(b);
             }).forEach(id => {
                 const m = machines[id];
                 let type = m.printer_type || 'unknown';
-                if(type === 'unknown' && (m.display_name||'').toLowerCase().includes('trujet')) type = 'trujet';
-                if(type === 'unknown') type = 'grando';
-                if(groups[type]) groups[type].push(id); else groups['unknown'].push(id);
+                if (type==='unknown' && (m.display_name||'').toLowerCase().includes('trujet')) type='trujet';
+                if (type==='unknown') type='grando';
+                (groups[type]||groups['unknown']).push(id);
             });
 
-            if(groups.grando.length) content.innerHTML += `<div class="printer-group"><div class="group-header grando">🔵 Grando (${groups.grando.length})</div><div class="machines-grid">${groups.grando.map(id => cardHTML(id, machines[id], 'grando')).join('')}</div></div>`;
-            if(groups.trujet.length) content.innerHTML += `<div class="printer-group"><div class="group-header trujet">🟠 TruJet (${groups.trujet.length})</div><div class="machines-grid">${groups.trujet.map(id => cardHTML(id, machines[id], 'trujet')).join('')}</div></div>`;
-            if(groups.unknown.length) content.innerHTML += `<div class="printer-group"><div class="group-header">⚪ Diğer (${groups.unknown.length})</div><div class="machines-grid">${groups.unknown.map(id => cardHTML(id, machines[id], 'unknown')).join('')}</div></div>`;
+            if (groups.grando.length)  content.innerHTML += `<div class="printer-group"><div class="group-header grando">🔵 Grando (${groups.grando.length})</div><div class="machines-grid">${groups.grando.map(id=>cardHTML(id,machines[id],'grando')).join('')}</div></div>`;
+            if (groups.trujet.length)  content.innerHTML += `<div class="printer-group"><div class="group-header trujet">🟠 TruJet (${groups.trujet.length})</div><div class="machines-grid">${groups.trujet.map(id=>cardHTML(id,machines[id],'trujet')).join('')}</div></div>`;
+            if (groups.unknown.length) content.innerHTML += `<div class="printer-group"><div class="group-header">⚪ Diğer (${groups.unknown.length})</div><div class="machines-grid">${groups.unknown.map(id=>cardHTML(id,machines[id],'unknown')).join('')}</div></div>`;
         }
+
+        // =========================================================
+        // KART HTML
+        // =========================================================
 
         function cardHTML(id, m, type) {
             const online = isOnline(m);
-            let statusText = 'Çevrimdışı', statusClass = 'offline', statusIcon = '🔌';
-            if(online) {
-                if(m.is_printing) { statusText='Basılıyor'; statusClass='printing'; statusIcon='▶️'; }
-                else if(m.is_paused) { statusText='Duraklatıldı'; statusClass='paused'; statusIcon='⏸️'; }
-                else { statusText='Boşta'; statusClass='idle'; statusIcon='💤'; }
+            let statusText='Çevrimdışı', statusClass='offline', statusIcon='🔌';
+            if (online) {
+                if (m.is_printing)    { statusText='Basılıyor';    statusClass='printing'; statusIcon='▶️'; }
+                else if (m.is_paused) { statusText='Duraklatıldı'; statusClass='paused';   statusIcon='⏸️'; }
+                else                  { statusText='Boşta';        statusClass='idle';     statusIcon='💤'; }
             }
 
-            const progress = m.progress || 0;
-            const name = m.display_name || id;
-            const isOpen = openSettings[id] || false;
-            const s = m.settings || {};
-            
+            const progress      = m.progress || 0;
+            const name          = m.display_name || id;
+            const isOpen        = openSettings[id] || false;
+            const s             = m.settings || {};
             const remainingTime = m.remaining_time || '00:00:00';
-            const remainingMeter = m.remaining_length_m ? m.remaining_length_m.toFixed(1) : '0.0';
+            const remainingMeter= m.remaining_length_m ? m.remaining_length_m.toFixed(1) : '0.0';
 
-            // --- AUTO CLEAN STATÜSÜ ---
-            let acText = 'Kapalı';
-            if (s.auto_clean_time_enabled) acText = `⏱️ Her ${s.auto_clean_time_minutes}dk`;
-            else if (s.auto_clean_copy_enabled) acText = `📄 Her ${s.auto_clean_copy_interval} Kopya`;
-            else if (s.auto_clean_pattern_enabled) acText = `🎨 Her ${s.auto_clean_pattern_interval} Desen`;
-
-            // Buton Kilitleri
-            let dG = !online ? 'disabled' : '';
-            let dP=dG, dPR=dG, dC=dG, dCh=dG, dCl=dG, dA=dG, dI=dG, dM=dG;
-
-            if(online) {
-                if(m.is_printing) { dP='disabled'; dCh='disabled'; dCl='disabled'; dI='disabled'; dM='disabled'; }
-                else if(m.is_paused) { dP='disabled'; dCh='disabled'; dI='disabled'; dM='disabled'; }
+            let acText = '<span style="color:#64748b">Kapalı</span>';
+            if (s.auto_clean_time_enabled) {
+                const h=s.auto_clean_time_hours||0, mi=s.auto_clean_time_minutes||0, sc=s.auto_clean_time_seconds||0;
+                const parts=[];
+                if(h>0) parts.push(h+'s');
+                if(mi>0) parts.push(mi+'dk');
+                if(sc>0) parts.push(sc+'sn');
+                acText = `⏱️ ${parts.join(' ')||'Açık'}`;
+            } else if (s.auto_clean_copy_enabled) {
+                acText = `📄 Her ${s.auto_clean_copy_interval||10} Kopya`;
+            } else if (s.auto_clean_pattern_enabled) {
+                acText = `🎨 Her ${s.auto_clean_pattern_interval||3} Desen`;
             }
 
-            const pBtn = m.is_paused 
-                ? `<button class="btn btn-print" onclick="cmd('${id}','resume')" ${dPR}><span class="btn-icon">▶️</span>Devam</button>`
-                : `<button class="btn btn-pause" onclick="cmd('${id}','pause')" ${dPR}><span class="btn-icon">⏸️</span>Pause</button>`;
+            let dG=''; if (!online) dG='disabled';
+            let dP=dG,dPR=dG,dC=dG,dCh=dG,dCl=dG,dA=dG,dI=dG,dM=dG;
+            if (online) {
+                if (m.is_printing)    { dP='disabled'; dCh='disabled'; dCl='disabled'; dI='disabled'; dM='disabled'; }
+                else if (m.is_paused) { dP='disabled'; dCh='disabled'; dI='disabled'; dM='disabled'; }
+            }
+
+            const pBtn = m.is_paused
+                ? `<button class="btn btn-print" onclick="cmd('${id}','resume')" ${dPR}><span>▶️</span>Devam</button>`
+                : `<button class="btn btn-pause" onclick="cmd('${id}','pause')"  ${dPR}><span>⏸️</span>Pause</button>`;
+
+            // Hareket butonu — onpointerdown + preventDefault
+            const moveBtn = (dir, icon, disabled) =>
+                `<button class="btn-move" ${disabled?'disabled':''}
+                    onpointerdown="movePress(event,'${id}','${dir}')"
+                    oncontextmenu="return false">${icon}</button>`;
 
             return `
             <div class="machine-card ${type} ${statusClass}">
                 <div class="machine-header">
                     <div class="machine-title">
                         <span class="printer-badge ${type}">${type}</span>
-                        <input type="text" class="machine-name-input" value="${name}" onfocus="editingId='${id}'" onblur="saveName('${id}',this.value)">
+                        <input type="text" class="machine-name-input" value="${name}"
+                            onfocus="editingId='${id}'"
+                            onblur="saveName('${id}',this.value)">
                     </div>
                     <div class="status-badge ${statusClass}">${statusIcon} ${statusText}</div>
                 </div>
 
                 <div class="job-info">
-                    <div style="margin-bottom:8px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-weight:500;">
-                        📄 ${m.job_name||'-'}
+                    <div style="margin-bottom:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500;">
+                        📄 ${m.job_name || '-'}
                     </div>
                     <div class="progress-bar">
                         <div class="progress-fill ${type}" style="width:${Math.max(progress,5)}%"></div>
                         <div class="progress-text">${progress.toFixed(1)}%</div>
                     </div>
-                    
                     <div class="stats-container">
                         <div class="stat-row">
                             <div class="stat-group">
@@ -442,277 +480,359 @@
 
                 <div class="control-wrapper">
                     <div class="btn-row-3">
-                        <button class="btn btn-print" onclick="cmd('${id}','print')" ${dP}><span class="btn-icon">▶️</span>Print</button>
+                        <button class="btn btn-print"  onclick="cmd('${id}','print')"  ${dP} ><span>▶️</span>Print</button>
                         ${pBtn}
-                        <button class="btn btn-cancel" onclick="cmd('${id}','cancel')" ${dC}><span class="btn-icon">⏹️</span>Cancel</button>
+                        <button class="btn btn-cancel" onclick="cmd('${id}','cancel')" ${dC} ><span>⏹️</span>Cancel</button>
                     </div>
                     <div class="btn-row-4">
-                        <button class="btn btn-check" onclick="cmd('${id}','check')" ${dCh}><span class="btn-icon">✅</span>Check</button>
-                        <button class="btn btn-clean" onclick="cmd('${id}','clean')" ${dCl}><span class="btn-icon">🧹</span>Clean</button>
-                        <button class="btn btn-auto" onclick="cmd('${id}','force_full_clean')" ${dA}><span class="btn-icon">🤖</span>AutoClean</button>
-                        <button class="btn btn-load" onclick="cmd('${id}','load_ink')" ${dI}><span class="btn-icon">🖨️</span>Ink</button>
+                        <button class="btn btn-check" onclick="cmd('${id}','check')"            ${dCh}><span>✅</span>Check</button>
+                        <button class="btn btn-clean" onclick="cmd('${id}','clean')"            ${dCl}><span>🧹</span>Clean</button>
+                        <button class="btn btn-auto"  onclick="cmd('${id}','force_full_clean')" ${dA} ><span>🤖</span>AutoClean</button>
+                        <button class="btn btn-load"  onclick="cmd('${id}','load_ink')"         ${dI} ><span>🖨️</span>Ink</button>
                     </div>
                 </div>
+
                 <div class="move-panel">
                     <div class="move-grid">
-                        <div></div><button class="btn-move" onclick="cmd('${id}','back')" ${dM}>⬆️</button><div></div>
-                        <button class="btn-move" onclick="cmd('${id}','left')" ${dM}>⬅️</button><div></div><button class="btn-move" onclick="cmd('${id}','right')" ${dM}>➡️</button>
-                        <div></div><button class="btn-move" onclick="cmd('${id}','ahead')" ${dM}>⬇️</button><div></div>
+                        <div></div>
+                        ${moveBtn('back',  '⬆️', !!dM)}
+                        <div></div>
+                        ${moveBtn('left',  '⬅️', !!dM)}
+                        <div style="display:flex;align-items:center;justify-content:center;color:#475569;font-size:0.7em;">↕</div>
+                        ${moveBtn('right', '➡️', !!dM)}
+                        <div></div>
+                        ${moveBtn('ahead', '⬇️', !!dM)}
+                        <div></div>
                     </div>
                 </div>
+
                 <div class="settings-section">
-                    <div class="settings-header" onclick="toggleSettings('${id}')"><span>⚙️ Otomatik Temizlik Ayarları</span><span>${isOpen?'▲':'▼'}</span></div>
+                    <div class="settings-header" onclick="toggleSettings('${id}')">
+                        <span>⚙️ Otomatik Temizlik Ayarları</span>
+                        <span>${isOpen?'▲':'▼'}</span>
+                    </div>
                     <div class="settings-content ${isOpen?'open':''}" id="settings-content-${id}">
                         <div class="setting-row">
                             <span class="setting-label">⏰ Süre Bazlı</span>
-                            <div class="setting-controls"><div class="toggle-switch ${s.auto_clean_time_enabled ? 'on' : ''}" id="time-en-${id}" onclick="this.classList.toggle('on')"></div></div>
+                            <div class="setting-controls">
+                                <div class="toggle-switch ${s.auto_clean_time_enabled?'on':''}"
+                                     id="time-en-${id}" onclick="this.classList.toggle('on')"></div>
+                            </div>
                         </div>
                         <div class="setting-row">
-                            <span class="setting-label">Süre (Sa:Dk:Sn)</span>
+                            <span class="setting-label">Süre (Sa : Dk : Sn)</span>
                             <div class="setting-controls">
-                                <input type="number" class="setting-input" id="time-h-${id}" value="${s.auto_clean_time_hours||0}">:
-                                <input type="number" class="setting-input" id="time-m-${id}" value="${s.auto_clean_time_minutes||5}">:
-                                <input type="number" class="setting-input" id="time-s-${id}" value="${s.auto_clean_time_seconds||0}">
+                                <input type="number" class="setting-input" id="time-h-${id}"  value="${s.auto_clean_time_hours||0}"   min="0" max="23">
+                                <span style="opacity:0.5">:</span>
+                                <input type="number" class="setting-input" id="time-m-${id}"  value="${s.auto_clean_time_minutes||5}" min="0" max="59">
+                                <span style="opacity:0.5">:</span>
+                                <input type="number" class="setting-input" id="time-s-${id}"  value="${s.auto_clean_time_seconds||0}" min="0" max="59">
                             </div>
                         </div>
                         <div class="setting-row">
                             <span class="setting-label">📄 Kopya Bazlı</span>
-                            <div class="setting-controls"><div class="toggle-switch ${s.auto_clean_copy_enabled ? 'on' : ''}" id="copy-en-${id}" onclick="this.classList.toggle('on')"></div></div>
+                            <div class="setting-controls">
+                                <div class="toggle-switch ${s.auto_clean_copy_enabled?'on':''}"
+                                     id="copy-en-${id}" onclick="this.classList.toggle('on')"></div>
+                            </div>
                         </div>
                         <div class="setting-row">
                             <span class="setting-label">Her X Kopyada</span>
-                            <div class="setting-controls"><input type="number" class="setting-input" id="copy-int-${id}" value="${s.auto_clean_copy_interval||10}" style="width:70px;"></div>
+                            <div class="setting-controls">
+                                <input type="number" class="setting-input" id="copy-int-${id}" value="${s.auto_clean_copy_interval||10}" style="width:70px;" min="1">
+                            </div>
                         </div>
                         <div class="setting-row">
                             <span class="setting-label">🎨 Desen Bazlı</span>
-                            <div class="setting-controls"><div class="toggle-switch ${s.auto_clean_pattern_enabled ? 'on' : ''}" id="patt-en-${id}" onclick="this.classList.toggle('on')"></div></div>
+                            <div class="setting-controls">
+                                <div class="toggle-switch ${s.auto_clean_pattern_enabled?'on':''}"
+                                     id="patt-en-${id}" onclick="this.classList.toggle('on')"></div>
+                            </div>
                         </div>
                         <div class="setting-row">
                             <span class="setting-label">Her X Desende</span>
-                            <div class="setting-controls"><input type="number" class="setting-input" id="patt-int-${id}" value="${s.auto_clean_pattern_interval||3}" style="width:70px;"></div>
+                            <div class="setting-controls">
+                                <input type="number" class="setting-input" id="patt-int-${id}" value="${s.auto_clean_pattern_interval||3}" style="width:70px;" min="1">
+                            </div>
                         </div>
-                        <button class="save-btn" onclick="saveSettings('${id}')">Ayarları Kaydet</button>
+                        <button class="save-btn" id="save-btn-${id}" onclick="saveSettings('${id}')">
+                            💾 Ayarları Kaydet
+                        </button>
                     </div>
                 </div>
             </div>`;
         }
 
-        function isOnline(m){ return m.last_seen && (Date.now()-m.last_seen < 40000); }
-        function cmd(id,c){ db.ref(`machines/${id}/pending_command`).set({command:c, id:Date.now().toString()}); }
-        function saveName(id,v){ if(v.trim()){ db.ref(`machines/${id}`).update({display_name:v}); } editingId=null; render(); }
-        function toggleSettings(id){ updatePaused=true; document.getElementById('pauseIndicator').classList.add('show'); openSettings[id]=!openSettings[id]; if(!openSettings[id] && !Object.values(openSettings).includes(true)){updatePaused=false; document.getElementById('pauseIndicator').classList.remove('show');} render(); }
-        function saveSettings(id) { const s = { auto_clean_time_enabled: document.getElementById(`time-en-${id}`).classList.contains('on'), auto_clean_time_hours: parseInt(document.getElementById(`time-h-${id}`).value)||0, auto_clean_time_minutes: parseInt(document.getElementById(`time-m-${id}`).value)||0, auto_clean_time_seconds: parseInt(document.getElementById(`time-s-${id}`).value)||0, auto_clean_copy_enabled: document.getElementById(`copy-en-${id}`).classList.contains('on'), auto_clean_copy_interval: parseInt(document.getElementById(`copy-int-${id}`).value)||0, auto_clean_pattern_enabled: document.getElementById(`patt-en-${id}`).classList.contains('on'), auto_clean_pattern_interval: parseInt(document.getElementById(`patt-int-${id}`).value)||0, from_web: true }; db.ref(`machines/${id}/settings`).update(s); toggleSettings(id); }
+        // =========================================================
+        // YARDIMCILAR
+        // =========================================================
 
-        function openGlobalSettings(){ updatePaused=true; document.getElementById('pauseIndicator').classList.add('show'); const l=document.getElementById('gsList'); l.innerHTML=''; Object.keys(machines).forEach(id=>{ l.innerHTML+=`<div class="gs-item" data-id="${id}"><span class="gs-id">${id.substring(0,6)}</span><input class="gs-input-name" value="${machines[id].display_name||id}"><input class="gs-input-order" type="number" value="${machines[id].sort_order||999}"><button class="btn-icon-delete" onclick="askDelete('${id}')">🗑️</button></div>`; }); document.getElementById('globalSettingsModal').classList.add('show'); }
-        function closeGlobalSettings(){ document.getElementById('globalSettingsModal').classList.remove('show'); updatePaused=false; document.getElementById('pauseIndicator').classList.remove('show'); render(); }
-        function switchTab(tab){ document.querySelectorAll('.tab-content').forEach(d=>d.classList.remove('active')); document.querySelectorAll('.modal-tab').forEach(t=>t.classList.remove('active')); document.getElementById(`tab-${tab}`).classList.add('active'); event.target.classList.add('active'); }
-		function saveGlobalSettings(){ 
-			const u={}; 
-			// Makine isimlerini ve sıralamayı al
-			document.querySelectorAll('.gs-item').forEach(i=>{ 
-				const id=i.getAttribute('data-id'); 
-				u[`machines/${id}/display_name`]=i.querySelector('.gs-input-name').value; 
-				u[`machines/${id}/sort_order`]=parseInt(i.querySelector('.gs-input-order').value)||999; 
-			}); 
-			
-			// Bildirim ayarlarını al
-			const notifData = { 
-				enabled: document.getElementById('notif-enabled').classList.contains('on'), 
-				start: document.getElementById('notif-start').value, 
-				end: document.getElementById('notif-end').value, 
-				copy: parseInt(document.getElementById('notif-copy').value)||0, 
-				percent: parseInt(document.getElementById('notif-percent').value)||0, 
-				time: parseInt(document.getElementById('notif-time').value)||0, 
-				meter: parseInt(document.getElementById('notif-meter').value)||0 
-			}; 
-			
-			// Ayarları LocalStorage'a kaydet (Frontend kontrolü için)
-			localStorage.setItem('notif_settings', JSON.stringify(notifData)); 
-			
-			// Ayarları Firebase'e de kaydet (Python/Backend kontrolü için - Eğer Python kodunu güncellersen orası da okur)
-			db.ref('settings/notifications').set(notifData);
-			db.ref().update(u); 
-			
-			closeGlobalSettings(); 
-			
-			// Kullanıcıya bilgi ver
-			if(!notifData.enabled) {
-				console.log("Bildirimler tamamen kapatıldı.");
-			}
-		}
-        function loadNotifSettings() { const s = JSON.parse(localStorage.getItem('notif_settings') || '{}'); if(s.enabled) document.getElementById('notif-enabled').classList.add('on'); if(s.start) document.getElementById('notif-start').value = s.start; if(s.end) document.getElementById('notif-end').value = s.end; if(s.copy) document.getElementById('notif-copy').value = s.copy; if(s.percent) document.getElementById('notif-percent').value = s.percent; if(s.time) document.getElementById('notif-time').value = s.time; if(s.meter) document.getElementById('notif-meter').value = s.meter; }
+        function isOnline(m) { return m.last_seen && (Date.now()-m.last_seen < 40000); }
 
-        // --- BİLDİRİM FONKSİYONLARI (GÜÇLENDİRİLMİŞ) ---
+        function cmd(id, c) {
+            db.ref(`machines/${id}/pending_command`).set({ command:c, id:Date.now().toString() });
+        }
+
+        /** Hareket butonu — onpointerdown, basılı tutma/sürükleme/kopyalama engellenir */
+        function movePress(event, id, direction) {
+            event.preventDefault();
+            event.stopPropagation();
+            if (event.target && event.target.disabled) return;
+            cmd(id, direction);
+        }
+
+        function saveName(id, v) {
+            if (v.trim()) db.ref(`machines/${id}`).update({ display_name: v });
+            editingId = null; render();
+        }
+
+        function toggleSettings(id) {
+            updatePaused = true;
+            document.getElementById('pauseIndicator').classList.add('show');
+            openSettings[id] = !openSettings[id];
+            if (!openSettings[id] && !Object.values(openSettings).includes(true)) {
+                updatePaused = false;
+                document.getElementById('pauseIndicator').classList.remove('show');
+            }
+            render();
+        }
+
+        function saveSettings(id) {
+            const s = {
+                auto_clean_time_enabled:     document.getElementById(`time-en-${id}`).classList.contains('on'),
+                auto_clean_time_hours:       parseInt(document.getElementById(`time-h-${id}`).value)   || 0,
+                auto_clean_time_minutes:     parseInt(document.getElementById(`time-m-${id}`).value)   || 0,
+                auto_clean_time_seconds:     parseInt(document.getElementById(`time-s-${id}`).value)   || 0,
+                auto_clean_copy_enabled:     document.getElementById(`copy-en-${id}`).classList.contains('on'),
+                auto_clean_copy_interval:    parseInt(document.getElementById(`copy-int-${id}`).value) || 10,
+                auto_clean_pattern_enabled:  document.getElementById(`patt-en-${id}`).classList.contains('on'),
+                auto_clean_pattern_interval: parseInt(document.getElementById(`patt-int-${id}`).value) || 3,
+                from_web: true
+            };
+            db.ref(`machines/${id}/settings`).update(s).then(() => {
+                const btn = document.getElementById(`save-btn-${id}`);
+                if (btn) {
+                    btn.textContent = '✅ Kaydedildi!';
+                    btn.classList.add('saved');
+                    setTimeout(() => { btn.textContent='💾 Ayarları Kaydet'; btn.classList.remove('saved'); }, 2000);
+                }
+            }).catch(e => alert('Kaydetme hatası: ' + e.message));
+        }
+
+        // =========================================================
+        // GLOBAL SETTINGS
+        // =========================================================
+
+        function openGlobalSettings() {
+            updatePaused = true;
+            document.getElementById('pauseIndicator').classList.add('show');
+            const l = document.getElementById('gsList');
+            l.innerHTML = '';
+            Object.keys(machines).forEach(id => {
+                l.innerHTML += `<div class="gs-item" data-id="${id}">
+                    <span class="gs-id">${id.substring(0,6)}</span>
+                    <input class="gs-input-name"  value="${machines[id].display_name||id}">
+                    <input class="gs-input-order" type="number" value="${machines[id].sort_order||999}">
+                    <button class="btn-icon-delete" onclick="askDelete('${id}')">🗑️</button>
+                </div>`;
+            });
+            document.getElementById('globalSettingsModal').classList.add('show');
+        }
+
+        function closeGlobalSettings() {
+            document.getElementById('globalSettingsModal').classList.remove('show');
+            updatePaused = false;
+            document.getElementById('pauseIndicator').classList.remove('show');
+            render();
+        }
+
+        function switchTab(tab, event) {
+            document.querySelectorAll('.tab-content').forEach(d => d.classList.remove('active'));
+            document.querySelectorAll('.modal-tab').forEach(t => t.classList.remove('active'));
+            document.getElementById(`tab-${tab}`).classList.add('active');
+            if (event && event.target) event.target.classList.add('active');
+        }
+
+        function saveGlobalSettings() {
+            const u = {};
+            document.querySelectorAll('.gs-item').forEach(i => {
+                const id = i.getAttribute('data-id');
+                u[`machines/${id}/display_name`] = i.querySelector('.gs-input-name').value;
+                u[`machines/${id}/sort_order`]   = parseInt(i.querySelector('.gs-input-order').value)||999;
+            });
+            const notifData = {
+                enabled: document.getElementById('notif-enabled').classList.contains('on'),
+                start:   document.getElementById('notif-start').value,
+                end:     document.getElementById('notif-end').value,
+                copy:    parseInt(document.getElementById('notif-copy').value)    || 0,
+                percent: parseInt(document.getElementById('notif-percent').value) || 0,
+                time:    parseInt(document.getElementById('notif-time').value)    || 0,
+                meter:   parseInt(document.getElementById('notif-meter').value)   || 0
+            };
+            localStorage.setItem('notif_settings', JSON.stringify(notifData));
+            db.ref('settings/notifications').set(notifData);
+            db.ref().update(u);
+            closeGlobalSettings();
+        }
+
+        function loadNotifSettings() {
+            const s = JSON.parse(localStorage.getItem('notif_settings') || '{}');
+            if (s.enabled) document.getElementById('notif-enabled').classList.add('on');
+            if (s.start)   document.getElementById('notif-start').value   = s.start;
+            if (s.end)     document.getElementById('notif-end').value     = s.end;
+            if (s.copy)    document.getElementById('notif-copy').value    = s.copy;
+            if (s.percent) document.getElementById('notif-percent').value = s.percent;
+            if (s.time)    document.getElementById('notif-time').value    = s.time;
+            if (s.meter)   document.getElementById('notif-meter').value   = s.meter;
+        }
+
+        // =========================================================
+        // SİLME MODALI
+        // =========================================================
+
+        function askDelete(id)   { deleteId=id; document.getElementById('deleteModal').classList.add('show'); }
+        function closeModal()    { document.getElementById('deleteModal').classList.remove('show'); }
+        function confirmDelete() {
+            if (deleteId) {
+                db.ref(`machines/${deleteId}`).remove();
+                const el = document.querySelector(`.gs-item[data-id="${deleteId}"]`);
+                if (el) el.remove();
+            }
+            closeModal(); delete openSettings[deleteId];
+        }
+
+        // =========================================================
+        // BİLDİRİMLER
+        // =========================================================
+
         function requestPermission() {
             if (!("Notification" in window)) { alert("Tarayıcı desteklemiyor."); return; }
-            Notification.requestPermission().then(p => { 
-                if(p === "granted") {
-                    new Notification("✅ İzin Verildi!", { body: "Bildirimler aktif." });
-                    // Service Worker'ı manuel güncelle
+            Notification.requestPermission().then(p => {
+                if (p === "granted") {
+                    new Notification("✅ İzin Verildi!", { body:"Bildirimler aktif." });
                     if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
-                } else alert("İzin reddedildi. Tarayıcı ayarlarından site izinlerini kontrol edin.");
+                } else {
+                    alert("İzin reddedildi. Tarayıcı ayarlarından site izinlerini kontrol edin.");
+                }
             });
         }
 
         function testNotification() {
-            if (Notification.permission === "granted") {
-                const title = "🔔 Test Bildirimi";
-                const options = { 
-                    body: "Sistem sorunsuz çalışıyor!", 
-                    icon: 'https://cdn-icons-png.flaticon.com/512/13309/13309211.png',
-                    vibrate: [200, 100, 200]
-                };
-                
-                // Android için SW üzerinden gönder (Daha kararlı)
-                if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-                    navigator.serviceWorker.ready.then(reg => reg.showNotification(title, options));
-                } else {
-                    new Notification(title, options);
-                }
+            if (Notification.permission !== "granted") {
+                alert("Önce 'Bildirim İzni İste' butonuna basın!");
+                requestPermission(); return;
+            }
+            const title = "🔔 Test Bildirimi";
+            const opts  = { body:"Sistem sorunsuz çalışıyor!", icon:'https://cdn-icons-png.flaticon.com/512/13309/13309211.png', vibrate:[200,100,200] };
+            if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+                navigator.serviceWorker.ready.then(r => r.showNotification(title, opts));
             } else {
-                alert("Önce 'İzin İste' butonuna basın!");
-                requestPermission();
+                new Notification(title, opts);
             }
         }
 
-		// --- BİLDİRİM KONTROL FONKSİYONU (GECE VARDİYASI DESTEKLİ) ---
-		function checkNotifications() {
-			// 1. Ayarları al
-			const s = JSON.parse(localStorage.getItem('notif_settings') || '{}');
-			
-			// 2. KESİN KAPATMA: Eğer switch kapalıysa HİÇBİR ŞEY yapma, direkt fonksiyondan çık.
-			if (!s.enabled) {
-				return; 
-			}
+        function sendNotif(machineName, body) {
+            if (Notification.permission !== "granted") return;
+            const title = `⚠️ ${machineName}`;
+            const opts  = { body, icon:'https://cdn-icons-png.flaticon.com/512/13309/13309211.png', vibrate:[200,100,200], tag:`alert-${machineName}` };
+            if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+                navigator.serviceWorker.ready.then(r => r.showNotification(title, opts));
+            } else {
+                new Notification(title, opts);
+            }
+        }
 
-			// 3. SAAT MANTIĞI (Gece Vardiyası Düzeltmesi)
-			const now = new Date();
-			const currentMins = now.getHours() * 60 + now.getMinutes();
-			
-			const [sh, sm] = (s.start || '08:30').split(':');
-			const startMins = parseInt(sh) * 60 + parseInt(sm);
-			
-			const [eh, em] = (s.end || '18:30').split(':');
-			const endMins = parseInt(eh) * 60 + parseInt(em);
-			
-			let isWorkingHours = false;
+        // =========================================================
+        // BİLDİRİM KONTROL
+        // =========================================================
+        // Tüm bildirim türleri: kopya, yüzde, süre, metre
+        // notifReady = false ilk 8 saniye → sahte bildirim yok
 
-			if (startMins < endMins) {
-				// NORMAL VARDİYA (Örn: 08:30 - 18:30)
-				// Şu anki saat bu iki değerin arasındaysa çalışır.
-				if (currentMins >= startMins && currentMins <= endMins) {
-					isWorkingHours = true;
-				}
-			} else {
-				// GECE VARDİYASI (Örn: 20:30 - 08:30)
-				// Başlangıç, bitişten büyükse gece yarısı geçiliyor demektir.
-				// Mantık: Ya akşam saatlerindeyizdir (Start'tan büyük) YA DA sabahın erken saatlerindeyizdir (End'den küçük).
-				if (currentMins >= startMins || currentMins <= endMins) {
-					isWorkingHours = true;
-				}
-			}
+        function checkNotifications() {
+            // İlk 8 saniye tamamen atla (sayfa açılışı spurious bildirim önleme)
+            if (!notifReady) return;
 
-			// Eğer mesai saati dışındaysak çık
-			if (!isWorkingHours) return;
+            const s = JSON.parse(localStorage.getItem('notif_settings') || '{}');
+            if (!s.enabled) return;
 
-			// --- MAKİNE KONTROLLERİ ---
-			Object.values(machines).forEach(m => {
-				// Makine çevrimdışıysa veya basmıyorsa atla
-				if (!isOnline(m) || !m.is_printing) return;
+            const now         = new Date();
+            const currentMins = now.getHours()*60 + now.getMinutes();
+            const [sh,sm]     = (s.start||'08:30').split(':');
+            const [eh,em]     = (s.end  ||'18:30').split(':');
+            const startMins   = parseInt(sh)*60 + parseInt(sm);
+            const endMins     = parseInt(eh)*60 + parseInt(em);
+            let   inTime      = false;
+            if (startMins < endMins) {
+                inTime = (currentMins >= startMins && currentMins <= endMins);
+            } else {
+                inTime = (currentMins >= startMins || currentMins <= endMins);
+            }
+            if (!inTime) return;
 
-				const name = m.display_name || 'Makine';
-				const id = m.machine_id || 'u';
+            Object.entries(machines).forEach(([id, m]) => {
+                if (!isOnline(m) || !m.is_printing) return;
+                const name = m.display_name || id;
 
-				// --- 1. KOPYA KONTROLÜ ---
-				const setCopy = parseInt(s.copy || 0);
-				if (setCopy > 0) {
-					const total = parseInt(m.total_copies || 0);
-					const current = parseInt(m.current_copy || 0);
-					const remCopy = total - current;
-					const key = id + '_copy';
+                // --- 1. KOPYA ---
+                const setCopy = parseInt(s.copy || 0);
+                if (setCopy > 0) {
+                    const total   = parseInt(m.total_copies  || 0);
+                    const current = parseInt(m.current_copy  || 0);
+                    const remCopy = total - current;
+                    const key     = id + '_copy';
+                    if (remCopy >= 0 && remCopy <= setCopy && !notifiedState[key]) {
+                        sendNotif(name, `${remCopy} kopya kaldı!`);
+                        notifiedState[key] = true;
+                    } else if (remCopy > setCopy) {
+                        notifiedState[key] = false;
+                    }
+                }
 
-					if (remCopy <= setCopy && remCopy >= 0 && !notifiedState[key]) {
-						sendNotif(name, `${remCopy} kopya kaldı!`);
-						notifiedState[key] = true;
-					} else if (remCopy > setCopy) {
-						notifiedState[key] = false;
-					}
-				}
+                // --- 2. YÜZDE ---
+                const setPercent = parseInt(s.percent || 0);
+                const progress   = parseFloat(m.progress || 0);
+                if (setPercent > 0 && progress > 0) {
+                    const remPercent = 100 - progress;
+                    const key = id + '_perc';
+                    if (remPercent >= 0 && remPercent <= setPercent && !notifiedState[key]) {
+                        sendNotif(name, `%${progress.toFixed(1)} tamamlandı! (%${remPercent.toFixed(1)} kaldı)`);
+                        notifiedState[key] = true;
+                    } else if (remPercent > setPercent) {
+                        notifiedState[key] = false;
+                    }
+                }
 
-				// --- 2. METRE KONTROLÜ ---
-				const setMeter = parseInt(s.meter || 0);
-				const remMeter = parseFloat(m.remaining_length_m || 0);
-				
-				if (setMeter > 0 && remMeter > 0) {
-					const key = id + '_met';
-					if (remMeter <= setMeter && !notifiedState[key]) {
-						sendNotif(name, `${name} | ${remMeter.toFixed(1)}m kaldı!`); 
-						notifiedState[key] = true;
-					} else if (remMeter > setMeter) {
-						notifiedState[key] = false;
-					}
-				}
+                // --- 3. SÜRE ---
+                const setTime = parseInt(s.time || 0);
+                if (setTime > 0 && m.remaining_time) {
+                    const parts = m.remaining_time.split(':');
+                    let remMin  = 0;
+                    if (parts.length === 3) remMin = parseInt(parts[0])*60 + parseInt(parts[1]);
+                    else if (parts.length === 2) remMin = parseInt(parts[0]);
+                    const key = id + '_time';
+                    if (remMin >= 0 && remMin <= setTime && !notifiedState[key]) {
+                        sendNotif(name, `${remMin} dakika kaldı!`);
+                        notifiedState[key] = true;
+                    } else if (remMin > setTime) {
+                        notifiedState[key] = false;
+                    }
+                }
 
-				// --- 3. SÜRE KONTROLÜ ---
-				const setTime = parseInt(s.time || 0);
-				if (setTime > 0 && m.remaining_time) {
-					const parts = m.remaining_time.split(':');
-					let remMinutes = 0;
-					if (parts.length === 3) remMinutes = (parseInt(parts[0]) * 60) + parseInt(parts[1]);
-					else if (parts.length === 2) remMinutes = parseInt(parts[0]);
-
-					const key = id + '_time';
-					if (remMinutes <= setTime && remMinutes >= 0 && !notifiedState[key]) {
-						sendNotif(name, `${remMinutes} dakika kaldı!`);
-						notifiedState[key] = true;
-					} else if (remMinutes > setTime) {
-						notifiedState[key] = false;
-					}
-				}
-				
-				// --- 4. YÜZDE KONTROLÜ ---
-				const setPercent = parseInt(s.percent || 0);
-				const progress = parseFloat(m.progress || 0);
-				if (setPercent > 0 && progress > 0) {
-					const remPercent = 100 - progress;
-					const key = id + '_perc';
-					if (remPercent <= setPercent && !notifiedState[key]) {
-						sendNotif(name, `%${progress.toFixed(1)} tamamlandı!`);
-						notifiedState[key] = true;
-					} else if (remPercent > setPercent) {
-						notifiedState[key] = false;
-					}
-				}
-			});
-		}
-
-        function askDelete(id){ deleteId=id; document.getElementById('deleteModal').classList.add('show'); }
-        function closeModal(){ document.getElementById('deleteModal').classList.remove('show'); }
-        function confirmDelete(){ if(deleteId) { db.ref(`machines/${deleteId}`).remove(); const el = document.querySelector(`.gs-item[data-id="${deleteId}"]`); if(el) el.remove(); } closeModal(); delete openSettings[deleteId]; }
-		// Bu fonksiyon index.html içinde script etiketinin bitimine yakın bir yere (diğer fonksiyonların yanına) eklenmeli
-		function sendNotif(title, body) {
-			// İzin yoksa gönderme
-			if (Notification.permission !== "granted") return;
-
-			const options = {
-				body: body,
-				icon: 'https://cdn-icons-png.flaticon.com/512/13309/13309211.png', // Manifestteki ikon
-				vibrate: [200, 100, 200], // Titreşim deseni
-				tag: 'machine-alert' // Üst üste binmeyi engeller
-			};
-
-			// PWA (Service Worker) üzerinden gönder (Android için daha kararlı)
-			if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-				navigator.serviceWorker.ready.then(function(registration) {
-					registration.showNotification(title, options);
-				});
-			} else {
-				// Standart bildirim (Masaüstü/Tarayıcı için)
-				new Notification(title, options);
-			}
-		}
+                // --- 4. METRE ---
+                const setMeter = parseInt(s.meter || 0);
+                const remMeter = parseFloat(m.remaining_length_m || 0);
+                if (setMeter > 0 && remMeter > 0) {
+                    const key = id + '_met';
+                    // Güvenli minimum: 0.1m altı sahte veri sayılır, bildirim atılmaz
+                    if (remMeter >= 0.1 && remMeter <= setMeter && !notifiedState[key]) {
+                        sendNotif(name, `${remMeter.toFixed(1)} m kaldı!`);
+                        notifiedState[key] = true;
+                    } else if (remMeter > setMeter) {
+                        notifiedState[key] = false;
+                    }
+                }
+            });
+        }
     </script>
 </body>
-
 </html>
-
