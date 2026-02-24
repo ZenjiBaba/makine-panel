@@ -121,6 +121,18 @@
         .btn-move:hover  { background: #475569; }
         .btn-move:active { background: #3b82f6; transform: scale(0.94); }
         .btn-move:disabled { opacity: 0.2; cursor: not-allowed; }
+        /* Trujet toggle aktif yön */
+        .btn-move.move-active {
+            background: #3b82f6;
+            box-shadow: 0 0 10px rgba(59,130,246,0.7);
+            animation: pulse-move 1.2s infinite;
+        }
+        .btn-move.move-stop-btn { background: #ef4444; font-size: 1em; }
+        .btn-move.move-stop-btn:hover { background: #dc2626; }
+        @keyframes pulse-move {
+            0%,100% { box-shadow: 0 0 8px rgba(59,130,246,0.6); }
+            50%      { box-shadow: 0 0 18px rgba(59,130,246,1); }
+        }
 
         /* AYARLAR */
         .settings-section { background: rgba(0,0,0,0.3); border-radius: 12px; padding: 15px; margin-top: 15px; }
@@ -421,8 +433,20 @@
             // Hareket butonu — onpointerdown + preventDefault
             const moveBtn = (dir, icon, disabled) =>
                 `<button class="btn-move" ${disabled?'disabled':''}
-                    onpointerdown="movePress(event,'${id}','${dir}')"
+                    id="mbtn-${id}-${dir}"
+                    onpointerdown="movePress(event,'${id}','${dir}','${type}')"
+                    onpointerup="moveRelease(event,'${id}','${dir}','${type}')"
+                    onpointerleave="moveRelease(event,'${id}','${dir}','${type}')"
+                    onpointercancel="moveRelease(event,'${id}','${dir}','${type}')"
                     oncontextmenu="return false">${icon}</button>`;
+
+            // Ortadaki dur/gösterge hücresi (Trujet: gerçek dur butonu, Grando: gösterge)
+            const centerCell = type === 'trujet'
+                ? `<button class="btn-move move-stop-btn" ${!!dM?'disabled':''}
+                       id="mbtn-${id}-stop"
+                       onpointerdown="movePress(event,'${id}','stop_move','${type}')"
+                       oncontextmenu="return false">⏹️</button>`
+                : `<div style="display:flex;align-items:center;justify-content:center;color:#475569;font-size:0.7em;">↕</div>`;
 
             return `
             <div class="machine-card ${type} ${statusClass}">
@@ -498,7 +522,7 @@
                         ${moveBtn('back',  '⬆️', !!dM)}
                         <div></div>
                         ${moveBtn('left',  '⬅️', !!dM)}
-                        <div style="display:flex;align-items:center;justify-content:center;color:#475569;font-size:0.7em;">↕</div>
+                        ${centerCell}
                         ${moveBtn('right', '➡️', !!dM)}
                         <div></div>
                         ${moveBtn('ahead', '⬇️', !!dM)}
@@ -573,12 +597,92 @@
             db.ref(`machines/${id}/pending_command`).set({ command:c, id:Date.now().toString() });
         }
 
-        /** Hareket butonu — onpointerdown, basılı tutma/sürükleme/kopyalama engellenir */
-        function movePress(event, id, direction) {
+        // =========================================================
+        // HAREKET BUTONU — Grando: basılı tut (repeat), Trujet: toggle
+        // =========================================================
+
+        // Grando için basılı tutma state'i
+        let _grMoveInterval = null;
+        let _grMoveId  = null;
+        let _grMoveDir = null;
+
+        // Trujet için toggle state'i: { machineId: activeDir | null }
+        const _tjActive = {};
+
+        function _setMoveActive(id, dir) {
+            // Tüm yön butonlarını sıfırla, sadece aktif olanı highlight et
+            ['left','right','back','ahead','stop_move'].forEach(d => {
+                const btn = document.getElementById(`mbtn-${id}-${d === 'stop_move' ? 'stop' : d}`);
+                if (btn) btn.classList.remove('move-active');
+            });
+            if (dir) {
+                const activeBtn = document.getElementById(`mbtn-${id}-${dir === 'stop_move' ? 'stop' : dir}`);
+                if (activeBtn) activeBtn.classList.add('move-active');
+            }
+        }
+
+        function movePress(event, id, direction, printerType) {
             event.preventDefault();
             event.stopPropagation();
             if (event.target && event.target.disabled) return;
-            cmd(id, direction);
+            event.target.setPointerCapture && event.target.setPointerCapture(event.pointerId);
+
+            if (printerType === 'trujet') {
+                // ── TRUJET: Toggle mantığı ───────────────────────────────────
+                // Aktif yön varken aynı yöne veya dur'a basınca → dur
+                // Farklı yöne basınca → önce dur, sonra yeni yön
+                const current = _tjActive[id] || null;
+
+                if (direction === 'stop_move') {
+                    // Dur butonuna basıldı
+                    cmd(id, 'stop_move');
+                    _tjActive[id] = null;
+                    _setMoveActive(id, null);
+                    return;
+                }
+
+                if (current === direction) {
+                    // Aynı yöne tekrar basıldı → durdur
+                    cmd(id, 'stop_move');
+                    _tjActive[id] = null;
+                    _setMoveActive(id, null);
+                } else {
+                    // Yeni yön: önceki aktifse önce durdur
+                    if (current) cmd(id, 'stop_move');
+                    cmd(id, direction);
+                    _tjActive[id] = direction;
+                    _setMoveActive(id, direction);
+                }
+
+            } else {
+                // ── GRANDO: Basılı tutma (repeat) ───────────────────────────
+                // Önceki interval varsa temizle
+                if (_grMoveInterval) {
+                    clearInterval(_grMoveInterval);
+                    _grMoveInterval = null;
+                }
+                _grMoveId  = id;
+                _grMoveDir = direction;
+                cmd(id, direction);  // İlk komut hemen gönder
+                // 300ms aralıklarla tekrarla (basılı tutma simülasyonu)
+                _grMoveInterval = setInterval(() => {
+                    if (_grMoveId) cmd(_grMoveId, _grMoveDir);
+                }, 300);
+            }
+        }
+
+        function moveRelease(event, id, direction, printerType) {
+            event.preventDefault();
+            if (printerType === 'grando') {
+                // Basılı bırakınca interval durdur (makine zaten durur)
+                if (_grMoveInterval && _grMoveId === id) {
+                    clearInterval(_grMoveInterval);
+                    _grMoveInterval = null;
+                    _grMoveId  = null;
+                    _grMoveDir = null;
+                }
+            }
+            // Trujet: toggle olduğu için pointerup'ta hiçbir şey yapma
         }
 
         function saveName(id, v) {
