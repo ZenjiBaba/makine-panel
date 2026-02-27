@@ -274,9 +274,38 @@
         let notifiedState = {};
 
         // Sayfa açılışında sahte bildirim önleme:
-        // İlk 8 saniye checkNotifications'tan gelen bildirimler atlanır.
+        // notifReady false iken checkNotifications atlanır.
+        // notifReady true olduğunda mevcut durum "zaten bildirildi" olarak işaretlenir
+        // → sadece SONRAKI değişimlerde bildirim gönderilir.
         let notifReady    = false;
-        setTimeout(() => { notifReady = true; }, 8000);
+        let prevInTime    = false; // Saat aralığı önceki durumu (geçiş tespiti için)
+
+        setTimeout(() => {
+            // Şu anki makine durumunu "base state" olarak kaydet
+            // Böylece saat aralığına girilince birikmiş bildirim patlaması olmaz
+            const s = JSON.parse(localStorage.getItem('notif_settings') || '{}');
+            if (s.enabled) {
+                Object.entries(machines).forEach(([id, m]) => {
+                    if (!isOnline(m) || !m.is_printing) return;
+                    const setCopy    = parseInt(s.copy    || 0);
+                    const setPercent = parseInt(s.percent || 0);
+                    const setTime    = parseInt(s.time    || 0);
+                    const setMeter   = parseInt(s.meter   || 0);
+                    const total   = parseInt(m.total_copies || 0);
+                    const current = parseInt(m.current_copy || 0);
+                    const remCopy = total - current;
+                    if (setCopy > 0    && remCopy >= 0   && remCopy <= setCopy)    notifiedState[id+'_copy'] = true;
+                    if (setPercent > 0 && (100 - parseFloat(m.progress||0)) <= setPercent) notifiedState[id+'_perc'] = true;
+                    if (setMeter > 0   && parseFloat(m.remaining_length_m||0) <= setMeter) notifiedState[id+'_met']  = true;
+                    if (setTime > 0 && m.remaining_time) {
+                        const p = m.remaining_time.split(':');
+                        const remMin = p.length===3 ? parseInt(p[0])*60+parseInt(p[1]) : parseInt(p[0]||0);
+                        if (remMin <= setTime) notifiedState[id+'_time'] = true;
+                    }
+                });
+            }
+            notifReady = true;
+        }, 8000);
 
         // =========================================================
         // SERVICE WORKER
@@ -302,7 +331,10 @@
                 if (token) {
                     const user = firebase.auth().currentUser;
                     if (user) {
-                        firebase.database().ref('fcm_tokens').push({
+                        // *** DÜZELTME: push() yerine token'ı KEY olarak kullan.
+                        // Aynı cihaz her seferinde aynı key'i set() eder → duplicate OLMAZ.
+                        const tokenKey = token.replace(/[^a-zA-Z0-9]/g, '').substring(0, 80);
+                        firebase.database().ref('fcm_tokens/' + tokenKey).set({
                             token, user: user.email, userAgent: navigator.userAgent, date: Date.now()
                         });
                     }
@@ -849,11 +881,10 @@
         // =========================================================
         // BİLDİRİM KONTROL
         // =========================================================
-        // Tüm bildirim türleri: kopya, yüzde, süre, metre
         // notifReady = false ilk 8 saniye → sahte bildirim yok
+        // prevInTime takibi → saat aralığına YENİDEN girilince birikmiş bildirim patlamasını önler
 
         function checkNotifications() {
-            // İlk 8 saniye tamamen atla (sayfa açılışı spurious bildirim önleme)
             if (!notifReady) return;
 
             const s = JSON.parse(localStorage.getItem('notif_settings') || '{}');
@@ -871,6 +902,28 @@
             } else {
                 inTime = (currentMins >= startMins || currentMins <= endMins);
             }
+
+            // Saat aralığına YENİDEN girilince: mevcut durumu "zaten bildirildi" say
+            // → birikmiş bildirim patlaması olmaz
+            if (inTime && !prevInTime) {
+                Object.entries(machines).forEach(([id, m]) => {
+                    if (!isOnline(m) || !m.is_printing) return;
+                    const setCopy    = parseInt(s.copy    || 0);
+                    const setPercent = parseInt(s.percent || 0);
+                    const setTime2   = parseInt(s.time    || 0);
+                    const setMeter   = parseInt(s.meter   || 0);
+                    const remCopy = parseInt(m.total_copies||0) - parseInt(m.current_copy||0);
+                    if (setCopy>0    && remCopy<=setCopy)                                  notifiedState[id+'_copy'] = true;
+                    if (setPercent>0 && (100-parseFloat(m.progress||0))<=setPercent)      notifiedState[id+'_perc'] = true;
+                    if (setMeter>0   && parseFloat(m.remaining_length_m||0)<=setMeter)    notifiedState[id+'_met']  = true;
+                    if (setTime2>0   && m.remaining_time) {
+                        const p=m.remaining_time.split(':');
+                        const rm=p.length===3?parseInt(p[0])*60+parseInt(p[1]):parseInt(p[0]||0);
+                        if (rm<=setTime2) notifiedState[id+'_time'] = true;
+                    }
+                });
+            }
+            prevInTime = inTime;
             if (!inTime) return;
 
             Object.entries(machines).forEach(([id, m]) => {
@@ -927,7 +980,6 @@
                 const remMeter = parseFloat(m.remaining_length_m || 0);
                 if (setMeter > 0 && remMeter > 0) {
                     const key = id + '_met';
-                    // Güvenli minimum: 0.1m altı sahte veri sayılır, bildirim atılmaz
                     if (remMeter >= 0.1 && remMeter <= setMeter && !notifiedState[key]) {
                         sendNotif(name, `${remMeter.toFixed(1)} m kaldı!`);
                         notifiedState[key] = true;
