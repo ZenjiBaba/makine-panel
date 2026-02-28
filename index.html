@@ -410,9 +410,15 @@
         // VERİ DİNLEYİCİ
         // =========================================================
 
+        // Herhangi bir makine hareketi aktifken render durdurulur
+        function anyMoveActive() {
+            if (_groupMoveActive) return true;
+            return Object.values(_moveActive).some(v => !!v);
+        }
+
         function startListener() {
             db.ref('machines').on('value', snap => {
-                if (!editingId && !updatePaused) {
+                if (!editingId && !updatePaused && !anyMoveActive()) {
                     machines = snap.val() || {};
                     render();
                     checkNotifications();
@@ -858,6 +864,8 @@
                 _setGroupMoveActive(null);
             }
             if (_groupMoveDurTimer) { clearTimeout(_groupMoveDurTimer); _groupMoveDurTimer = null; }
+            // Hareket bitti → bekleyen veri varsa render et
+            if (!anyMoveActive()) render();
         }
 
         function groupMovePress(event, direction) {
@@ -950,6 +958,8 @@
                 clearTimeout(_moveDurTimer[id]);
                 _moveDurTimer[id] = null;
             }
+            // Hareket bitti → bekleyen veri varsa render et
+            if (!anyMoveActive()) render();
         }
 
         function movePress(event, id, direction, printerType) {
