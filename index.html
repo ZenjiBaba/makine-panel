@@ -35,6 +35,33 @@
         .group-header { font-size: 1.2em; font-weight: bold; padding: 10px 15px; border-radius: 10px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
         .group-header.grando { background: linear-gradient(90deg,#172554,#1e3a8a); border-left: 5px solid #60a5fa; color: #bfdbfe; }
         .group-header.trujet { background: linear-gradient(90deg,#451a03,#78350f); border-left: 5px solid #f59e0b; color: #fde68a; }
+        .group-header.group-general { background: linear-gradient(90deg,#0d3d2b,#065f46); border-left: 5px solid #34d399; color: #a7f3d0; cursor: pointer; }
+
+        /* GENEL MAKİNE AYARI PANELİ */
+        .gp-content { max-height: 0; overflow: hidden; transition: max-height 0.35s ease; }
+        .gp-content.open { max-height: 2000px; }
+        .gp-machines-list { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+        .gp-machine-check {
+            display: flex; align-items: center; gap: 7px; cursor: pointer;
+            background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+            padding: 7px 12px; border-radius: 10px; transition: background 0.15s;
+            -webkit-user-select: none; user-select: none;
+        }
+        .gp-machine-check:hover { background: rgba(255,255,255,0.12); }
+        .gp-machine-check.selected { background: rgba(52,211,153,0.18); border-color: #34d399; }
+        .gp-machine-check.offline { opacity: 0.5; }
+        .gp-check-box {
+            width: 20px; height: 20px; border-radius: 5px; border: 2px solid #475569;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.8em; font-weight: bold; color: transparent; transition: 0.15s; flex-shrink: 0;
+        }
+        .gp-machine-check.selected .gp-check-box { background: #34d399; border-color: #34d399; color: #022c22; }
+        .gp-dot-online  { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; flex-shrink:0; }
+        .gp-dot-offline { width: 8px; height: 8px; border-radius: 50%; background: #ef4444; flex-shrink:0; }
+        .gp-select-actions { display: flex; gap: 8px; margin-bottom: 4px; }
+        .gp-select-btn { padding: 5px 14px; border-radius: 7px; border: 1px solid #334155; background: #1e293b; color: #94a3b8; font-size: 0.8em; cursor: pointer; }
+        .gp-select-btn:hover { background: #334155; color: white; }
+        .btn-meter { background: linear-gradient(135deg,#0891b2,#06b6d4); }
 
         .machines-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(350px,1fr)); gap: 20px; }
         .machine-card { border-radius: 15px; padding: 20px; transition: transform 0.2s; position: relative; overflow: hidden; }
@@ -278,6 +305,8 @@
         let updatePaused  = false;
         let editingId     = null;
         let notifiedState = {};
+        let groupSelected  = new Set();   // seçili makine id'leri
+        let groupPanelOpen = true;        // panel açık/kapalı
 
         // Sayfa açılışında sahte bildirim önleme:
         // notifReady false iken checkNotifications atlanır.
@@ -418,6 +447,7 @@
                 (groups[type]||groups['unknown']).push(id);
             });
 
+            content.innerHTML += renderGroupPanel(ids);
             if (groups.grando.length)  content.innerHTML += `<div class="printer-group"><div class="group-header grando">🔵 Grando (${groups.grando.length})</div><div class="machines-grid">${groups.grando.map(id=>cardHTML(id,machines[id],'grando')).join('')}</div></div>`;
             if (groups.trujet.length)  content.innerHTML += `<div class="printer-group"><div class="group-header trujet">🟠 TruJet (${groups.trujet.length})</div><div class="machines-grid">${groups.trujet.map(id=>cardHTML(id,machines[id],'trujet')).join('')}</div></div>`;
             if (groups.unknown.length) content.innerHTML += `<div class="printer-group"><div class="group-header">⚪ Diğer (${groups.unknown.length})</div><div class="machines-grid">${groups.unknown.map(id=>cardHTML(id,machines[id],'unknown')).join('')}</div></div>`;
@@ -664,6 +694,225 @@
 
         function cmd(id, c) {
             db.ref(`machines/${id}/pending_command`).set({ command:c, id:Date.now().toString() });
+        }
+
+        // =========================================================
+        // GENEL MAKİNE AYARI — GRUP PANELİ
+        // =========================================================
+
+        function renderGroupPanel(allIds) {
+            // Makine listesini sıralı göster
+            const sorted = [...allIds].sort((a,b) => {
+                const oA = machines[a].sort_order||999, oB = machines[b].sort_order||999;
+                return oA-oB || a.localeCompare(b);
+            });
+
+            const checkboxes = sorted.map(id => {
+                const m    = machines[id];
+                const name = m.display_name || id;
+                const type = m.printer_type || 'grando';
+                const online  = isOnline(m);
+                const selCls  = groupSelected.has(id) ? 'selected' : '';
+                const offCls  = !online ? 'offline' : '';
+                const dotCls  = online ? 'gp-dot-online' : 'gp-dot-offline';
+                return `<div class="gp-machine-check ${selCls} ${offCls}" onclick="toggleGroupMachine('${id}')">
+                    <div class="gp-check-box">✓</div>
+                    <span class="printer-badge ${type}" style="flex-shrink:0">${type}</span>
+                    <span style="font-size:0.9em">${name}</span>
+                    <div class="${dotCls}"></div>
+                </div>`;
+            }).join('');
+
+            const hasSelected = groupSelected.size > 0;
+            const dis = hasSelected ? '' : 'disabled';
+
+            // Pause/Resume etiketi: seçili makinelerin çoğunluğuna göre
+            let pauseLabel = '⏸️ Pause', pauseAction = 'pause';
+            const pausedCount = [...groupSelected].filter(id => machines[id] && machines[id].is_paused).length;
+            if (groupSelected.size > 0 && pausedCount > groupSelected.size / 2) {
+                pauseLabel = '▶️ Devam'; pauseAction = 'resume';
+            }
+
+            return `<div class="printer-group">
+                <div class="group-header group-general" onclick="toggleGroupPanel()">
+                    🎛️ Genel Makine Ayarı
+                    <span style="font-size:0.75em;opacity:0.75;margin-left:8px">${groupSelected.size > 0 ? groupSelected.size + ' makine seçili' : 'Makine seç'}</span>
+                    <span style="margin-left:auto;font-size:0.85em">${groupPanelOpen ? '▲' : '▼'}</span>
+                </div>
+                <div class="gp-content ${groupPanelOpen ? 'open' : ''}">
+                    <div style="padding:15px 0 0 0">
+                        <div class="gp-machines-list">${checkboxes}</div>
+                        <div class="gp-select-actions">
+                            <button class="gp-select-btn" onclick="groupSelectAll()">✅ Tümünü Seç</button>
+                            <button class="gp-select-btn" onclick="groupClearAll()">✖️ Temizle</button>
+                        </div>
+                        <div class="control-wrapper">
+                            <div class="btn-row-3">
+                                <button class="btn btn-print"  onclick="groupCmd('print')"  ${dis}><span>▶️</span>Print</button>
+                                <button class="btn btn-pause"  onclick="groupCmd('${pauseAction}')" ${dis}><span>${pauseLabel.split(' ')[0]}</span>${pauseLabel.split(' ').slice(1).join(' ')}</button>
+                                <button class="btn btn-cancel" onclick="groupCmd('cancel')" ${dis}><span>⏹️</span>Cancel</button>
+                            </div>
+                            <div class="btn-row-4">
+                                <button class="btn btn-check" onclick="groupCmd('check')"            ${dis}><span>✅</span>Check</button>
+                                <button class="btn btn-clean" onclick="groupCmd('clean')"            ${dis}><span>🧹</span>Clean</button>
+                                <button class="btn btn-auto"  onclick="groupCmd('force_full_clean')" ${dis}><span>🤖</span>AutoClean</button>
+                                <button class="btn btn-meter" onclick="groupMeterAlert()"                  ><span>📏</span>MT Haber</button>
+                            </div>
+                        </div>
+                        <div class="move-panel">
+                            <div class="move-grid">
+                                <div></div>
+                                <button class="btn-move" ${dis}
+                                    id="gmbtn-back"
+                                    onpointerdown="groupMovePress(event,'back')"
+                                    onpointerup="groupMoveRelease(event,'back')"
+                                    onpointerleave="groupMoveRelease(event,'back')"
+                                    onpointercancel="groupMoveRelease(event,'back')"
+                                    oncontextmenu="return false">⬆️</button>
+                                <div></div>
+                                <button class="btn-move" ${dis}
+                                    id="gmbtn-left"
+                                    onpointerdown="groupMovePress(event,'left')"
+                                    onpointerup="groupMoveRelease(event,'left')"
+                                    onpointerleave="groupMoveRelease(event,'left')"
+                                    onpointercancel="groupMoveRelease(event,'left')"
+                                    oncontextmenu="return false">⬅️</button>
+                                <button class="btn-move move-stop-btn" ${dis}
+                                    id="gmbtn-stop"
+                                    onpointerdown="groupMoveStop(event)"
+                                    oncontextmenu="return false">⏹️</button>
+                                <button class="btn-move" ${dis}
+                                    id="gmbtn-right"
+                                    onpointerdown="groupMovePress(event,'right')"
+                                    onpointerup="groupMoveRelease(event,'right')"
+                                    onpointerleave="groupMoveRelease(event,'right')"
+                                    onpointercancel="groupMoveRelease(event,'right')"
+                                    oncontextmenu="return false">➡️</button>
+                                <div></div>
+                                <button class="btn-move" ${dis}
+                                    id="gmbtn-ahead"
+                                    onpointerdown="groupMovePress(event,'ahead')"
+                                    onpointerup="groupMoveRelease(event,'ahead')"
+                                    onpointerleave="groupMoveRelease(event,'ahead')"
+                                    onpointercancel="groupMoveRelease(event,'ahead')"
+                                    oncontextmenu="return false">⬇️</button>
+                                <div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+        }
+
+        function toggleGroupPanel() {
+            groupPanelOpen = !groupPanelOpen;
+            render();
+        }
+
+        function toggleGroupMachine(id) {
+            if (groupSelected.has(id)) groupSelected.delete(id);
+            else groupSelected.add(id);
+            render();
+        }
+
+        function groupSelectAll() {
+            Object.keys(machines).forEach(id => groupSelected.add(id));
+            render();
+        }
+
+        function groupClearAll() {
+            groupSelected.clear();
+            render();
+        }
+
+        function groupCmd(command) {
+            if (groupSelected.size === 0) return;
+            groupSelected.forEach(id => {
+                const m = machines[id];
+                if (m && isOnline(m)) cmd(id, command);
+            });
+        }
+
+        // =========================================================
+        // GENEL PANEL — HAREKET BUTONLARI (toggle mantığı)
+        // =========================================================
+
+        let _groupMoveActive = null;
+        let _groupMoveDurTimer = null;
+
+        function _setGroupMoveActive(dir) {
+            ['left','right','back','ahead'].forEach(d => {
+                const btn = document.getElementById(`gmbtn-${d}`);
+                if (btn) btn.classList.remove('move-active');
+            });
+            if (dir) {
+                const btn = document.getElementById(`gmbtn-${dir}`);
+                if (btn) btn.classList.add('move-active');
+            }
+        }
+
+        function _groupStopMove() {
+            if (_groupMoveActive) {
+                groupSelected.forEach(id => { if (machines[id] && isOnline(machines[id])) cmd(id, 'stop_move'); });
+                _groupMoveActive = null;
+                _setGroupMoveActive(null);
+            }
+            if (_groupMoveDurTimer) { clearTimeout(_groupMoveDurTimer); _groupMoveDurTimer = null; }
+        }
+
+        function groupMovePress(event, direction) {
+            event.preventDefault(); event.stopPropagation();
+            if (event.target && event.target.disabled) return;
+            event.target.setPointerCapture && event.target.setPointerCapture(event.pointerId);
+            if (groupSelected.size === 0) return;
+
+            if (_groupMoveActive === direction) {
+                _groupStopMove();
+            } else {
+                if (_groupMoveActive) {
+                    groupSelected.forEach(id => { if (machines[id] && isOnline(machines[id])) cmd(id, 'stop_move'); });
+                    if (_groupMoveDurTimer) { clearTimeout(_groupMoveDurTimer); _groupMoveDurTimer = null; }
+                }
+                groupSelected.forEach(id => { if (machines[id] && isOnline(machines[id])) cmd(id, direction); });
+                _groupMoveActive = direction;
+                _setGroupMoveActive(direction);
+
+                const s = JSON.parse(localStorage.getItem('notif_settings') || '{}');
+                const maxSec = parseInt(s.max_dur || 0);
+                if (maxSec > 0) {
+                    _groupMoveDurTimer = setTimeout(() => _groupStopMove(), maxSec * 1000);
+                }
+            }
+        }
+
+        function groupMoveRelease(event, direction) { event.preventDefault(); }
+
+        function groupMoveStop(event) {
+            event.preventDefault(); event.stopPropagation();
+            _groupStopMove();
+        }
+
+        function groupMeterAlert() {
+            const s = JSON.parse(localStorage.getItem('notif_settings') || '{}');
+            const current = s.meter || 0;
+            const val = prompt(
+                `📏 Kalan Metre Uyarısı\n\nBu değerin altına düşünce bildirim gönderilir.\n(0 = kapalı)\n\nMevcut: ${current} m\n\nYeni değer girin:`,
+                current
+            );
+            if (val === null) return;
+            const num = parseFloat(val) || 0;
+            s.meter = num;
+            s.enabled = num > 0 ? true : s.enabled;
+            localStorage.setItem('notif_settings', JSON.stringify(s));
+            // Notif modal açıksa da güncelle
+            const el = document.getElementById('notif-meter');
+            if (el) el.value = num;
+            // Bildirim izni yoksa iste
+            if (num > 0 && Notification.permission !== 'granted') {
+                if (confirm('Bildirim göndermek için izin gerekli. İzin istensin mi?')) requestPermission();
+            } else {
+                alert(num > 0 ? `✅ ${num} m altına düşünce uyarı verilecek` : '🔕 Metre uyarısı kapatıldı');
+            }
         }
 
         // =========================================================
