@@ -165,7 +165,7 @@
         .settings-section { background: rgba(0,0,0,0.3); border-radius: 12px; padding: 15px; margin-top: 15px; }
         .settings-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; -webkit-user-select: none; user-select: none; }
         .settings-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
-        .settings-content.open { max-height: 800px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); }
+        .settings-content.open { max-height: 1000px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); }
         .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .setting-row:last-child { border-bottom: none; }
         .setting-label { font-size: 0.9em; color: #cbd5e1; }
@@ -254,7 +254,17 @@
                 <p style="font-size:0.8em;color:#94a3b8;margin-bottom:10px;">0 = bu türde bildirim gönderme</p>
                 <div class="notif-row"><span>📄 Kalan Kopya Azalınca</span>  <input type="number" class="notif-input" id="notif-copy"    min="0" placeholder="0"></div>
                 <div class="notif-row"><span>📊 Kalan Yüzde Azalınca (%)</span><input type="number" class="notif-input" id="notif-percent" min="0" placeholder="0"></div>
-                <div class="notif-row"><span>⏳ Kalan Süre Azalınca (dk)</span><input type="number" class="notif-input" id="notif-time"    min="0" placeholder="0"></div>
+                <div class="notif-row" style="align-items:flex-start;flex-direction:column;gap:6px;">
+                    <span>⏳ Kalan Süre Azalınca</span>
+                    <div style="display:flex;align-items:center;gap:5px;">
+                        <input type="number" class="notif-input" id="notif-time-h" min="0" placeholder="0" style="width:52px;" title="Saat">
+                        <span style="opacity:0.6;font-size:0.85em">sa</span>
+                        <input type="number" class="notif-input" id="notif-time-m" min="0" max="59" placeholder="0" style="width:52px;" title="Dakika">
+                        <span style="opacity:0.6;font-size:0.85em">dk</span>
+                        <input type="number" class="notif-input" id="notif-time-s" min="0" max="59" placeholder="0" style="width:52px;" title="Saniye">
+                        <span style="opacity:0.6;font-size:0.85em">sn</span>
+                    </div>
+                </div>
                 <div class="notif-row"><span>📏 Kalan Metre Azalınca (m)</span><input type="number" class="notif-input" id="notif-meter"   min="0" placeholder="0"></div>
                 <hr style="border-color:rgba(255,255,255,0.1);margin:12px 0;">
                 <p style="font-size:0.8em;color:#94a3b8;margin-bottom:8px;">🕹️ Yön Butonu Maks. Basılı Tutma Süresi</p>
@@ -306,7 +316,7 @@
         let editingId     = null;
         let notifiedState = {};
         let groupSelected  = new Set();   // seçili makine id'leri
-        let groupPanelOpen = true;        // panel açık/kapalı
+        let groupPanelOpen = false;       // panel açık/kapalı (kapalı başlar)
 
         // Sayfa açılışında sahte bildirim önleme:
         // notifReady false iken checkNotifications atlanır.
@@ -315,28 +325,19 @@
         let notifReady    = false;
         let prevInTime    = false; // Saat aralığı önceki durumu (geçiş tespiti için)
 
+        // TruJet: değer değişiminden printing tespiti
+        const prevMachineData    = {}; // { id: { meter, elapsed, ts } }
+        const machineIsPrinting  = {}; // { id: bool } — TruJet override
+
         setTimeout(() => {
             // Şu anki makine durumunu "base state" olarak kaydet
-            // Böylece saat aralığına girilince birikmiş bildirim patlaması olmaz
+            // Böylece sayfa açılışında veya saat aralığına girilince birikmiş bildirim olmaz
             const s = JSON.parse(localStorage.getItem('notif_settings') || '{}');
             if (s.enabled) {
                 Object.entries(machines).forEach(([id, m]) => {
-                    if (!isOnline(m) || !m.is_printing) return;
-                    const setCopy    = parseInt(s.copy    || 0);
-                    const setPercent = parseInt(s.percent || 0);
-                    const setTime    = parseInt(s.time    || 0);
-                    const setMeter   = parseInt(s.meter   || 0);
-                    const total   = parseInt(m.total_copies || 0);
-                    const current = parseInt(m.current_copy || 0);
-                    const remCopy = total - current;
-                    if (setCopy > 0    && remCopy >= 0   && remCopy <= setCopy)    notifiedState[id+'_copy'] = true;
-                    if (setPercent > 0 && (100 - parseFloat(m.progress||0)) <= setPercent) notifiedState[id+'_perc'] = true;
-                    if (setMeter > 0   && parseFloat(m.remaining_length_m||0) <= setMeter) notifiedState[id+'_met']  = true;
-                    if (setTime > 0 && m.remaining_time) {
-                        const p = m.remaining_time.split(':');
-                        const remMin = p.length===3 ? parseInt(p[0])*60+parseInt(p[1]) : parseInt(p[0]||0);
-                        if (remMin <= setTime) notifiedState[id+'_time'] = true;
-                    }
+                    const type = m.printer_type || 'grando';
+                    if (!isOnline(m) || !getMachineIsPrinting(id, m, type)) return;
+                    _initNotifState(id, m, s);
                 });
             }
             notifReady = true;
@@ -418,12 +419,46 @@
 
         function startListener() {
             db.ref('machines').on('value', snap => {
+                const newData = snap.val() || {};
+                // TruJet durum güncellemesi (değer değişiminden printing tespiti)
+                Object.entries(newData).forEach(([id, m]) => {
+                    if ((m.printer_type||'grando') === 'trujet') {
+                        updateTrujetPrintingState(id, m);
+                    }
+                });
                 if (!editingId && !updatePaused && !anyMoveActive()) {
-                    machines = snap.val() || {};
+                    machines = newData;
                     render();
                     checkNotifications();
                 }
             });
+        }
+
+        // TruJet: metre veya süre değişiyorsa printing olarak işaretle
+        function updateTrujetPrintingState(id, m) {
+            const now   = Date.now();
+            const meter = parseFloat(m.total_length_m || 0);
+            const etime = m.elapsed_time || '';
+            const prev  = prevMachineData[id];
+            if (prev) {
+                const meterChanged = Math.abs(meter - prev.meter) > 0.005;
+                const timeChanged  = etime !== prev.elapsed && etime !== '00:00:00';
+                if (meterChanged || timeChanged) {
+                    machineIsPrinting[id] = true;
+                    prevMachineData[id]   = { meter, elapsed: etime, ts: now };
+                } else if (now - prev.ts > 12000) {
+                    // 12 saniyedir değer değişmedi → boşta
+                    machineIsPrinting[id] = false;
+                }
+            } else {
+                prevMachineData[id] = { meter, elapsed: etime, ts: now };
+            }
+        }
+
+        // Makine için gerçek "is printing" durumu (TruJet için override kullanır)
+        function getMachineIsPrinting(id, m, type) {
+            if (type === 'trujet') return machineIsPrinting[id] === true;
+            return !!(m.is_printing);
         }
 
         // =========================================================
@@ -466,24 +501,23 @@
         function cardHTML(id, m, type) {
             const online = isOnline(m);
             let statusText='Çevrimdışı', statusClass='offline', statusIcon='🔌';
-            if (online) {
-                if (m.is_printing)    { statusClass='printing'; statusIcon='▶️'; }
-                else if (m.is_paused) { statusClass='paused';   statusIcon='⏸️'; }
-                else                  { statusClass='idle';     statusIcon='💤'; }
+            const isPrinting = online && getMachineIsPrinting(id, m, type);
+            const isPaused   = online && !!(m.is_paused);
 
-                // Grando: gerçek status_text'i göster (Printing.../Print Pause/Idle/Cleanning...)
-                // Trujet: Türkçe sabit etiketler
+            if (online) {
+                if (isPrinting)   { statusClass='printing'; statusIcon='▶️'; }
+                else if (isPaused){ statusClass='paused';   statusIcon='⏸️'; }
+                else              { statusClass='idle';     statusIcon='💤'; }
+
                 if (type === 'grando' && m.status_text) {
                     statusText = m.status_text;
-                    // Cleanning... durumu için özel ikon ve renk
                     if (m.status_text.toLowerCase().includes('clean')) {
-                        statusIcon = '🧹';
-                        statusClass = 'paused';  // Mor/sarı badge (pause rengi)
+                        statusIcon = '🧹'; statusClass = 'paused';
                     }
                 } else {
-                    if (m.is_printing)    statusText = 'Basılıyor';
-                    else if (m.is_paused) statusText = 'Duraklatıldı';
-                    else                  statusText = 'Boşta';
+                    if (isPrinting)    statusText = 'Basılıyor';
+                    else if (isPaused) statusText = 'Duraklatıldı';
+                    else               statusText = 'Boşta';
                 }
             }
 
@@ -491,14 +525,13 @@
             const name          = m.display_name || id;
             const isOpen        = openSettings[id] || false;
             const s             = m.settings || {};
-            const remainingTime = m.remaining_time || '00:00:00';
+            const remainingTime = formatRemainingTime(m.remaining_time || '00:00:00');
             const remainingMeter= m.remaining_length_m ? m.remaining_length_m.toFixed(1) : '0.0';
 
             let acText = '<span style="color:#64748b">Kapalı</span>';
-            const cntSec = m.auto_clean_countdown_sec;  // -1=kapalı, 0=şimdi, +N=N sn kaldı, -N=N kopya kaldı
+            const cntSec = m.auto_clean_countdown_sec;
 
             if (s.auto_clean_time_enabled) {
-                // Süre bazlı: geri sayım göster
                 if (cntSec !== undefined && cntSec >= 0) {
                     const mm = Math.floor(cntSec / 60), ss = cntSec % 60;
                     const cdStr = mm > 0 ? `${mm}dk ${ss}sn` : `${ss}sn`;
@@ -511,7 +544,6 @@
                 }
             } else if (s.auto_clean_copy_enabled) {
                 if (cntSec !== undefined && cntSec < 0 && cntSec !== -1) {
-                    // Negatif: kalan kopya sayısı
                     acText = `<span style="color:#f59e0b">📄 ${Math.abs(cntSec)} kopya sonra</span>`;
                 } else {
                     acText = `📄 Her ${s.auto_clean_copy_interval||10} Kopya`;
@@ -524,18 +556,18 @@
                 }
             }
 
+            // Buton devre dışı mantığı
             let dG=''; if (!online) dG='disabled';
             let dP=dG,dPR=dG,dC=dG,dCh=dG,dCl=dG,dA=dG,dI=dG,dM=dG;
             if (online) {
-                if (m.is_printing)    { dP='disabled'; dCh='disabled'; dCl='disabled'; dI='disabled'; dM='disabled'; }
-                else if (m.is_paused) { dP='disabled'; dCh='disabled'; dI='disabled'; dM='disabled'; }
+                if (isPrinting)    { dP='disabled'; dCh='disabled'; dCl='disabled'; dI='disabled'; dM='disabled'; }
+                else if (isPaused) { dP='disabled'; dCh='disabled'; dI='disabled'; dM='disabled'; }
             }
 
-            const pBtn = m.is_paused
+            const pBtn = isPaused
                 ? `<button class="btn btn-print" onclick="cmd('${id}','resume')" ${dPR}><span>▶️</span>Devam</button>`
                 : `<button class="btn btn-pause" onclick="cmd('${id}','pause')"  ${dPR}><span>⏸️</span>Pause</button>`;
 
-            // Hareket butonu — onpointerdown + preventDefault
             const moveBtn = (dir, icon, disabled) =>
                 `<button class="btn-move" ${disabled?'disabled':''}
                     id="mbtn-${id}-${dir}"
@@ -545,13 +577,22 @@
                     onpointercancel="moveRelease(event,'${id}','${dir}','${type}')"
                     oncontextmenu="return false">${icon}</button>`;
 
-            // Ortadaki dur/gösterge hücresi (Trujet: gerçek dur butonu, Grando: gösterge)
             const centerCell = type === 'trujet'
                 ? `<button class="btn-move move-stop-btn" ${!!dM?'disabled':''}
                        id="mbtn-${id}-stop"
                        onpointerdown="movePress(event,'${id}','stop_move','${type}')"
                        oncontextmenu="return false">⏹️</button>`
                 : `<div style="display:flex;align-items:center;justify-content:center;color:#475569;font-size:0.7em;">↕</div>`;
+
+            // Per-machine bildirim toggle
+            const mNotifOn = m.notif_enabled !== false; // default true
+            const notifToggleCls = mNotifOn ? 'on' : '';
+            const notifToggleRow = `
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.08);margin-bottom:8px;">
+                    <span style="font-size:0.9em;color:#cbd5e1;">🔔 Bu Makine Bildirimi</span>
+                    <div class="toggle-switch ${notifToggleCls}" id="mnotif-${id}"
+                         onclick="toggleMachineNotif('${id}')"></div>
+                </div>`;
 
             return `
             <div class="machine-card ${type} ${statusClass}">
@@ -641,6 +682,7 @@
                         <span>${isOpen?'▲':'▼'}</span>
                     </div>
                     <div class="settings-content ${isOpen?'open':''}" id="settings-content-${id}">
+                        ${notifToggleRow}
                         <div class="setting-row">
                             <span class="setting-label">⏰ Süre Bazlı</span>
                             <div class="setting-controls">
@@ -697,6 +739,38 @@
         // =========================================================
 
         function isOnline(m) { return m.last_seen && (Date.now()-m.last_seen < 40000); }
+
+        // Kalan süreyi "X saat Y dakika Z saniye" formatında göster
+        function formatRemainingTime(t) {
+            if (!t || t === '00:00:00') return '00:00:00';
+            const p = t.split(':');
+            if (p.length !== 3) return t;
+            const h = parseInt(p[0]||0), m = parseInt(p[1]||0), s = parseInt(p[2]||0);
+            if (h === 0 && m === 0 && s === 0) return '00:00:00';
+            const parts = [];
+            if (h > 0) parts.push(h + ' saat');
+            if (m > 0) parts.push(m + ' dk');
+            if (s > 0) parts.push(s + ' sn');
+            return parts.join(' ') || '0 sn';
+        }
+
+        // "HH:MM:SS" → toplam saniye
+        function parseTimeToSeconds(t) {
+            if (!t) return 0;
+            const p = t.split(':');
+            if (p.length === 3) return parseInt(p[0]||0)*3600 + parseInt(p[1]||0)*60 + parseInt(p[2]||0);
+            if (p.length === 2) return parseInt(p[0]||0)*60 + parseInt(p[1]||0);
+            return 0;
+        }
+
+        // Per-machine bildirim toggle (Firebase'e kaydet)
+        function toggleMachineNotif(id) {
+            const el = document.getElementById('mnotif-' + id);
+            if (!el) return;
+            el.classList.toggle('on');
+            const enabled = el.classList.contains('on');
+            db.ref(`machines/${id}`).update({ notif_enabled: enabled });
+        }
 
         function cmd(id, c) {
             db.ref(`machines/${id}/pending_command`).set({ command:c, id:Date.now().toString() });
@@ -1083,14 +1157,20 @@
                 u[`machines/${id}/display_name`] = i.querySelector('.gs-input-name').value;
                 u[`machines/${id}/sort_order`]   = parseInt(i.querySelector('.gs-input-order').value)||999;
             });
+            const tH = parseInt(document.getElementById('notif-time-h').value) || 0;
+            const tM = parseInt(document.getElementById('notif-time-m').value) || 0;
+            const tS = parseInt(document.getElementById('notif-time-s').value) || 0;
             const notifData = {
                 enabled: document.getElementById('notif-enabled').classList.contains('on'),
                 start:   document.getElementById('notif-start').value,
                 end:     document.getElementById('notif-end').value,
                 copy:    parseInt(document.getElementById('notif-copy').value)    || 0,
                 percent: parseInt(document.getElementById('notif-percent').value) || 0,
-                time:    parseInt(document.getElementById('notif-time').value)    || 0,
-                meter:   parseInt(document.getElementById('notif-meter').value)   || 0,
+                time_h:  tH,
+                time_m:  tM,
+                time_s:  tS,
+                time:    Math.floor((tH*3600 + tM*60 + tS) / 60), // uyumluluk
+                meter:   parseFloat(document.getElementById('notif-meter').value)  || 0,
                 max_dur: parseInt(document.getElementById('notif-max-dur').value) || 0
             };
             localStorage.setItem('notif_settings', JSON.stringify(notifData));
@@ -1106,9 +1186,16 @@
             if (s.end)      document.getElementById('notif-end').value      = s.end;
             if (s.copy)     document.getElementById('notif-copy').value     = s.copy;
             if (s.percent)  document.getElementById('notif-percent').value  = s.percent;
-            if (s.time)     document.getElementById('notif-time').value     = s.time;
             if (s.meter)    document.getElementById('notif-meter').value    = s.meter;
             if (s.max_dur !== undefined) document.getElementById('notif-max-dur').value = s.max_dur;
+            // Süre: yeni H:M:S formatı veya eski 'time' (dakika) uyumluluğu
+            if (s.time_h !== undefined) document.getElementById('notif-time-h').value = s.time_h;
+            if (s.time_m !== undefined) document.getElementById('notif-time-m').value = s.time_m;
+            if (s.time_s !== undefined) document.getElementById('notif-time-s').value = s.time_s;
+            // Eski format: sadece 'time' (dakika) varsa time_m alanına yaz
+            if (s.time && !s.time_h && !s.time_m && !s.time_s) {
+                document.getElementById('notif-time-m').value = s.time;
+            }
         }
 
         // =========================================================
@@ -1156,11 +1243,11 @@
             }
         }
 
-        function sendNotif(machineName, body) {
+        function sendNotif(machineName, body, tagKey) {
             if (Notification.permission !== "granted") return;
-            // Başlıkta makine adı, gövdede detay
             const title = `⚠️ ${machineName}`;
-            const opts  = { body, icon:'https://cdn-icons-png.flaticon.com/512/13309/13309211.png', vibrate:[200,100,200], tag:`alert-${machineName}` };
+            const tag   = `alert-${tagKey || machineName}`;
+            const opts  = { body, icon:'https://cdn-icons-png.flaticon.com/512/13309/13309211.png', vibrate:[200,100,200], tag };
             if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
                 navigator.serviceWorker.ready.then(r => r.showNotification(title, opts));
             } else {
@@ -1169,10 +1256,8 @@
         }
 
         // =========================================================
-        // BİLDİRİM KONTROL
+        // BİLDİRİM KONTROL — Çok tip, sürekli güncelleme
         // =========================================================
-        // notifReady = false ilk 8 saniye → sahte bildirim yok
-        // prevInTime takibi → saat aralığına YENİDEN girilince birikmiş bildirim patlamasını önler
 
         function checkNotifications() {
             if (!notifReady) return;
@@ -1186,101 +1271,135 @@
             const [eh,em]     = (s.end  ||'18:30').split(':');
             const startMins   = parseInt(sh)*60 + parseInt(sm);
             const endMins     = parseInt(eh)*60 + parseInt(em);
-            let   inTime      = false;
+            let inTime = false;
             if (startMins < endMins) {
                 inTime = (currentMins >= startMins && currentMins <= endMins);
             } else {
                 inTime = (currentMins >= startMins || currentMins <= endMins);
             }
 
-            // Saat aralığına YENİDEN girilince: mevcut durumu "zaten bildirildi" say
-            // → birikmiş bildirim patlaması olmaz
+            // Saat aralığına YENİDEN girilince mevcut durumu "zaten bildirildi" say
             if (inTime && !prevInTime) {
                 Object.entries(machines).forEach(([id, m]) => {
-                    if (!isOnline(m) || !m.is_printing) return;
-                    const setCopy    = parseInt(s.copy    || 0);
-                    const setPercent = parseInt(s.percent || 0);
-                    const setTime2   = parseInt(s.time    || 0);
-                    const setMeter   = parseInt(s.meter   || 0);
-                    const remCopy = parseInt(m.total_copies||0) - parseInt(m.current_copy||0);
-                    if (setCopy>0    && remCopy<=setCopy)                                  notifiedState[id+'_copy'] = true;
-                    if (setPercent>0 && (100-parseFloat(m.progress||0))<=setPercent)      notifiedState[id+'_perc'] = true;
-                    if (setMeter>0   && parseFloat(m.remaining_length_m||0)<=setMeter)    notifiedState[id+'_met']  = true;
-                    if (setTime2>0   && m.remaining_time) {
-                        const p=m.remaining_time.split(':');
-                        const rm=p.length===3?parseInt(p[0])*60+parseInt(p[1]):parseInt(p[0]||0);
-                        if (rm<=setTime2) notifiedState[id+'_time'] = true;
-                    }
+                    const type = m.printer_type || 'grando';
+                    const ip = getMachineIsPrinting(id, m, type);
+                    if (!isOnline(m) || !ip) return;
+                    _initNotifState(id, m, s);
                 });
             }
             prevInTime = inTime;
             if (!inTime) return;
 
             Object.entries(machines).forEach(([id, m]) => {
-                if (!isOnline(m) || !m.is_printing) return;
+                if (!isOnline(m)) return;
+                // Per-machine bildirim toggle (default: açık)
+                if (m.notif_enabled === false) return;
+                const type = m.printer_type || 'grando';
+                const ip = getMachineIsPrinting(id, m, type);
+                if (!ip) return;
                 const name = m.display_name || id;
 
-                // --- 1. KOPYA ---
+                // --- 1. KOPYA (her kopya düşüşünde) ---
                 const setCopy = parseInt(s.copy || 0);
                 if (setCopy > 0) {
-                    const total   = parseInt(m.total_copies  || 0);
-                    const current = parseInt(m.current_copy  || 0);
-                    const remCopy = total - current;
-                    const key     = id + '_copy';
-                    if (remCopy >= 0 && remCopy <= setCopy && !notifiedState[key]) {
-                        const copyMsg = remCopy === 0 ? 'Son kopya bitti!' : `${remCopy} kopya kaldı!`;
-                        sendNotif(name, copyMsg);
-                        notifiedState[key] = true;
-                    } else if (remCopy > setCopy) {
-                        notifiedState[key] = false;
+                    const remCopy = Math.max(0, parseInt(m.total_copies||0) - parseInt(m.current_copy||0));
+                    const key = id + '_copy';
+                    if (remCopy <= setCopy) {
+                        if (notifiedState[key] !== remCopy) {
+                            const msg = remCopy === 0
+                                ? 'Baskı bitti! Son kopya tamamlandı.'
+                                : `${remCopy} kopya kaldı!`;
+                            sendNotif(name, msg, key);
+                            notifiedState[key] = remCopy;
+                        }
+                    } else {
+                        notifiedState[key] = undefined;
                     }
                 }
 
-                // --- 2. YÜZDE ---
+                // --- 2. YÜZDE (her %1 düşüşünde) ---
                 const setPercent = parseInt(s.percent || 0);
-                const progress   = parseFloat(m.progress || 0);
-                if (setPercent > 0 && progress > 0) {
-                    const remPercent = 100 - progress;
+                if (setPercent > 0) {
+                    const progress   = parseFloat(m.progress || 0);
+                    const remPercent = Math.max(0, 100 - progress);
                     const key = id + '_perc';
-                    if (remPercent >= 0 && remPercent <= setPercent && !notifiedState[key]) {
-                        sendNotif(name, `%${remPercent.toFixed(0)} kaldı  (${progress.toFixed(1)}% tamamlandı)`);
-                        notifiedState[key] = true;
-                    } else if (remPercent > setPercent) {
-                        notifiedState[key] = false;
+                    if (remPercent <= setPercent && progress > 0) {
+                        const floorP = Math.floor(remPercent);
+                        if (notifiedState[key] !== floorP) {
+                            sendNotif(name, `%${floorP} kaldı  (${progress.toFixed(1)}% tamamlandı)`, key);
+                            notifiedState[key] = floorP;
+                        }
+                    } else {
+                        notifiedState[key] = undefined;
                     }
                 }
 
-                // --- 3. SÜRE ---
-                const setTime = parseInt(s.time || 0);
-                if (setTime > 0 && m.remaining_time) {
-                    const parts = m.remaining_time.split(':');
-                    let remMin  = 0;
-                    if (parts.length === 3) remMin = parseInt(parts[0])*60 + parseInt(parts[1]);
-                    else if (parts.length === 2) remMin = parseInt(parts[0]);
+                // --- 3. SÜRE (her 1 dakika düşüşünde) ---
+                const tH = parseInt(s.time_h||0), tM = parseInt(s.time_m||0), tS = parseInt(s.time_s||0);
+                const threshSec = tH*3600 + tM*60 + tS
+                    || (parseInt(s.time||0) * 60); // eski format fallback
+                if (threshSec > 0 && m.remaining_time) {
+                    const remSec = parseTimeToSeconds(m.remaining_time);
                     const key = id + '_time';
-                    if (remMin >= 0 && remMin <= setTime && !notifiedState[key]) {
-                        const timeMsg = remMin === 0 ? 'Az kaldı bitmek üzere!' : `${remMin} dakika kaldı!`;
-                        sendNotif(name, timeMsg);
-                        notifiedState[key] = true;
-                    } else if (remMin > setTime) {
-                        notifiedState[key] = false;
+                    if (remSec > 0 && remSec <= threshSec) {
+                        const curMin = Math.floor(remSec / 60);
+                        if (notifiedState[key] !== curMin) {
+                            const rh = Math.floor(remSec / 3600);
+                            const rm = Math.floor((remSec % 3600) / 60);
+                            const rs = remSec % 60;
+                            let tMsg;
+                            if (rh > 0)      tMsg = `${rh} saat ${rm} dakika ${rs} saniye kaldı!`;
+                            else if (rm > 0) tMsg = `${rm} dakika ${rs} saniye kaldı!`;
+                            else             tMsg = `${rs} saniye kaldı!`;
+                            sendNotif(name, tMsg, key);
+                            notifiedState[key] = curMin;
+                        }
+                    } else {
+                        notifiedState[key] = undefined;
                     }
                 }
 
-                // --- 4. METRE ---
+                // --- 4. METRE (her 1 mt düşüşünde) ---
                 const setMeter = parseFloat(s.meter || 0);
-                const remMeter = parseFloat(m.remaining_length_m || 0);
                 if (setMeter > 0) {
+                    const remMeter = parseFloat(m.remaining_length_m || 0);
                     const key = id + '_met';
-                    // remMeter > 0 şartı: iş bitti veya bilgi yok ise tetikleme
-                    if (remMeter > 0 && remMeter <= setMeter && !notifiedState[key]) {
-                        sendNotif(name, `${remMeter.toFixed(1)} metre kaldı!`);
-                        notifiedState[key] = true;
-                    } else if (remMeter > setMeter) {
-                        notifiedState[key] = false;
+                    if (remMeter > 0 && remMeter <= setMeter) {
+                        const floorM = Math.floor(remMeter); // 1m hassasiyet
+                        if (notifiedState[key] !== floorM) {
+                            sendNotif(name, `${remMeter.toFixed(1)} metre kaldı!`, key);
+                            notifiedState[key] = floorM;
+                        }
+                    } else {
+                        notifiedState[key] = undefined;
                     }
                 }
             });
+        }
+
+        // Sayfa açılışında veya saat aralığına girilince mevcut değerleri "zaten bildirildi" say
+        function _initNotifState(id, m, s) {
+            const setCopy = parseInt(s.copy||0);
+            if (setCopy > 0) {
+                const remCopy = Math.max(0, parseInt(m.total_copies||0) - parseInt(m.current_copy||0));
+                if (remCopy <= setCopy) notifiedState[id+'_copy'] = remCopy;
+            }
+            const setPercent = parseInt(s.percent||0);
+            if (setPercent > 0) {
+                const remP = Math.max(0, 100 - parseFloat(m.progress||0));
+                if (remP <= setPercent) notifiedState[id+'_perc'] = Math.floor(remP);
+            }
+            const threshSec = (parseInt(s.time_h||0)*3600 + parseInt(s.time_m||0)*60 + parseInt(s.time_s||0))
+                || (parseInt(s.time||0)*60);
+            if (threshSec > 0 && m.remaining_time) {
+                const remSec = parseTimeToSeconds(m.remaining_time);
+                if (remSec > 0 && remSec <= threshSec) notifiedState[id+'_time'] = Math.floor(remSec/60);
+            }
+            const setMeter = parseFloat(s.meter||0);
+            if (setMeter > 0) {
+                const remM = parseFloat(m.remaining_length_m||0);
+                if (remM > 0 && remM <= setMeter) notifiedState[id+'_met'] = Math.floor(remM);
+            }
         }
     </script>
 </body>
